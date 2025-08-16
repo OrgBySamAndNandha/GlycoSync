@@ -36,11 +36,9 @@ GlycoSync operates on a simple yet powerful daily feedback loop:
 * **Backend:** Python (for AI/ML)
 * **Database:** Firebase
 * **AI/ML:** TensorFlow / PyTorch
-* **OCR:** Google Vision API
+* **OCR:** Google Vision API 
 
-## 🚀 Getting Started
 
-This project is currently in the planning and development phase. Instructions on how to set up the development environment will be available here soon.
 
 
 
