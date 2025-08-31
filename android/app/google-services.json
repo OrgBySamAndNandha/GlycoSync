@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1095507577125",
+    "project_id": "glycosync-d82bf",
+    "storage_bucket": "glycosync-d82bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095507577125:android:12a482e3b9c72ef31472cc",
+        "android_client_info": {
+          "package_name": "com.example.glycosync"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1095507577125-aa7i9dg3fjfcuruihj633dsc3s8id0s3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0Pq3fZ5NOcq071AxP-7r46-OUMqa8ZjE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1095507577125-aa7i9dg3fjfcuruihj633dsc3s8id0s3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
