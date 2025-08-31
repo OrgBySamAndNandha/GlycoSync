@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/Details/view/details1_view.dart';
 import 'package:glycosync/screens/Patients/Details/view/details2_view.dart';
 import 'package:glycosync/screens/Patients/Details/view/details3_view.dart';
-import 'package:glycosync/screens/Patients/Details/view/details4_view.dart';
-import 'package:glycosync/screens/Patients/Details/view/details5_view.dart';
-import 'package:glycosync/screens/Patients/Details/view/details6_view.dart';
-import 'package:glycosync/screens/Patients/Details/view/details7_view.dart';
-import 'package:glycosync/screens/Patients/Details/view/details8_view.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:glycosync/screens/Patients/Details/controller/detail_controller.dart';
 
@@ -29,11 +25,7 @@ class _DetailsMainViewState extends State<DetailsMainView> {
       PersonalInfoStep(controller: _controller),
       DiabetesTypeStep(controller: _controller),
       InsulinTherapyStep(controller: _controller),
-      PillsStep(controller: _controller),
-      UnitsStep(controller: _controller),
-      RangesStep(controller: _controller),
-      MeterStep(controller: _controller),
-      GoalsStep(controller: _controller),
+
     ];
 
     return Scaffold(
