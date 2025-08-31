@@ -1,91 +1,93 @@
-// lib/app/auth/login/controllers/login_controller.dart
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:glycosync/screens/Patients/auth/model/Login_model.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:glycosync/screens/Patients/Details/view/details_main_view.dart';
+import 'package:glycosync/screens/Patients/auth/model/Login_model.dart';
+import 'package:glycosync/screens/Patients/home/view/home_view.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginController {
   final LoginModel model = LoginModel();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Function to handle email and password login
-  Future<UserCredential?> signInWithEmailAndPassword(BuildContext context) async {
+  // Helper function to check details and navigate
+  Future<void> _navigateOnLogin(User user, BuildContext context) async {
     try {
-      if (model.email.isEmpty || model.password.isEmpty) {
-        _showErrorDialog(context, "Please enter both email and password.");
-        return null;
-      }
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: model.email,
-        password: model.password,
-      );
-      // You can navigate to a home screen here upon successful login
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login Successful!")),
-      );
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      if (e.code == 'user-not-found') {
-        errorMessage = 'No user found for that email.';
-      } else if (e.code == 'wrong-password') {
-        errorMessage = 'Wrong password provided for that user.';
+      final doc = await FirebaseFirestore.instance
+          .collection('patients')
+          .doc(user.uid)
+          .get();
+
+      // Check if the document exists and if 'detailsCompleted' is true
+      if (doc.exists && doc.data()?['detailsCompleted'] == true) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeView()),
+        );
       } else {
-        errorMessage = 'An unknown error occurred.';
+        // Navigate to details screen if doc doesn't exist or details are not complete
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DetailsMainView()),
+        );
       }
-      _showErrorDialog(context, errorMessage);
-      return null;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error checking user details: $e')),
+      );
     }
   }
 
-  // Function to handle Google Sign-In
-  Future<UserCredential?> signInWithGoogle(BuildContext context) async {
+  Future<void> signInWithEmailAndPassword(BuildContext context) async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // The user canceled the sign-in
-        return null;
+      final UserCredential userCredential =
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: model.email,
+        password: model.password,
+      );
+      if (userCredential.user != null) {
+        await _navigateOnLogin(userCredential.user!, context);
       }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'An unknown error occurred.')),
+      );
+    }
+  }
+
+  Future<void> signInWithGoogle(BuildContext context) async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // The user canceled the sign-in
 
       final GoogleSignInAuthentication googleAuth =
       await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
+      final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      UserCredential userCredential =
-      await _auth.signInWithCredential(credential);
+      final UserCredential userCredential =
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Google Sign-In Successful!")),
-      );
-      // You can navigate to a home screen here
-      return userCredential;
+      if (userCredential.user != null) {
+        // For Google Sign-In, create user doc if it's their first time
+        final userDocRef = FirebaseFirestore.instance
+            .collection('patients')
+            .doc(userCredential.user!.uid);
+        final doc = await userDocRef.get();
+        if (!doc.exists) {
+          await userDocRef.set({
+            'email': userCredential.user!.email,
+            'createdAt': Timestamp.now(),
+            'detailsCompleted': false,
+          });
+        }
+        await _navigateOnLogin(userCredential.user!, context);
+      }
     } catch (e) {
-      _showErrorDialog(context, "Failed to sign in with Google. Please try again.");
-      return null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google Sign-In failed: $e')),
+      );
     }
-  }
-
-  // Helper to show an error dialog
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('An Error Occurred'),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Okay'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-          )
-        ],
-      ),
-    );
   }
 }
