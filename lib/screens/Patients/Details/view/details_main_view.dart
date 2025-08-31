@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/Details/view/details1_view.dart';
 import 'package:glycosync/screens/Patients/Details/view/details2_view.dart';
-import 'package:glycosync/screens/Patients/Details/view/details3_view.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:glycosync/screens/Patients/Details/controller/detail_controller.dart';
@@ -24,7 +23,6 @@ class _DetailsMainViewState extends State<DetailsMainView> {
     final List<Widget> detailPages = [
       PersonalInfoStep(controller: _controller),
       DiabetesTypeStep(controller: _controller),
-      InsulinTherapyStep(controller: _controller),
 
     ];
 
