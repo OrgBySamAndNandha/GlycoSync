@@ -24,16 +24,17 @@ class MyDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // This screen will use the default scaffold background color from your theme
+    // Both the Scaffold and AppBar will now correctly use your theme's background color
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Details', style: TextStyle(color: Colors.black)),
+        title: const Text('My Details', style: TextStyle(color: Colors.black87)),
         centerTitle: true,
-        backgroundColor: Colors.white, // White AppBar background
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black), // Back arrow color
+        // *** FIX: Using theme color and removing shadow ***
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87), // Back arrow color
       ),
-      backgroundColor: Colors.white, // White page background
+      // Scaffold background is automatically applied from the theme
       body: FutureBuilder<Map<String, dynamic>>(
         future: _getUserDetails(),
         builder: (context, snapshot) {
@@ -50,19 +51,32 @@ class MyDetailsView extends StatelessWidget {
           final details = snapshot.data!;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                _buildDetailRow('Gender', details['gender']),
-                _buildDetailRow('Height', details['height']),
-                _buildDetailRow('Weight', details['weight']),
-                _buildDetailRow('Diabetes Type', details['diabetesType']),
-                _buildDetailRow('Takes Pills', details['takesPills']?.toString()),
-                _buildDetailRow('Insulin Therapy', details['insulinTherapy']),
-                _buildDetailRow('Glucose Unit', details['glucoseUnit']),
-                _buildDetailRow('Carbs Unit', details['carbsUnit']),
-                _buildDetailRow('Health Goals', (details['healthGoals'] as List?)?.join(', ')),
-              ],
+            // Padding for the whole screen
+            padding: const EdgeInsets.all(16.0),
+            child:
+            // *** FIX: Added a white container card for the details list ***
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _buildDetailRow('Gender', details['gender']),
+                  _buildDetailRow('Height', details['height']),
+                  _buildDetailRow('Weight', details['weight']),
+                  _buildDetailRow('Diabetes Type', details['diabetesType']),
+                  _buildDetailRow(
+                      'Takes Pills', details['takesPills']?.toString()),
+                  _buildDetailRow(
+                      'Insulin Therapy', details['insulinTherapy']),
+                  _buildDetailRow('Glucose Unit', details['glucoseUnit']),
+                  _buildDetailRow('Carbs Unit', details['carbsUnit']),
+                  _buildDetailRow('Health Goals',
+                      (details['healthGoals'] as List?)?.join(', ')),
+                ],
+              ),
             ),
           );
         },

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/auth/view/Login_view.dart';
+// Import the new details view
+import 'package:glycosync/screens/Patients/Profile/view/my_details_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -11,86 +13,39 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-
-  // This function now returns a Future that resolves after fetching data
-  Future<Map<String, dynamic>> _getUserData() async {
-    // We add a small delay to ensure the auth state is settled
-    await Future.delayed(const Duration(milliseconds: 100));
-
+  Future<DocumentSnapshot> _getUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      // This will now clearly indicate if the user is not logged in
       throw Exception('User is not logged in.');
     }
-
-    try {
-      // *** FIX 1: ENSURE COLLECTION NAMES ARE CORRECT ***
-      // Double-check these collection names against your Firestore database
-      final patientDoc = await FirebaseFirestore.instance
-          .collection('patients') // Should be plural
-          .doc(user.uid)
-          .get();
-
-      final detailsDoc = await FirebaseFirestore.instance
-          .collection('patients_details') // The collection for detailed info
-          .doc(user.uid)
-          .get();
-
-      if (!patientDoc.exists) {
-        throw Exception('Patient document does not exist.');
-      }
-
-      final Map<String, dynamic> combinedData = {
-        ...patientDoc.data()!,
-        ...(detailsDoc.exists ? detailsDoc.data()! : {}),
-      };
-
-      return combinedData;
-
-    } catch (e) {
-      // This will print the exact error to your console for easier debugging
-      print("Error fetching user data from Firestore: $e");
-      // Re-throwing the error to be caught by the FutureBuilder
-      throw Exception('Failed to load profile data from Firestore.');
-    }
+    return FirebaseFirestore.instance.collection('patients').doc(user.uid).get();
   }
 
   @override
   Widget build(BuildContext context) {
+    // The Scaffold will now automatically use the backgroundColor from your app_theme.dart
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('My Profile', style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        // The AppBar will also use the theme's scaffoldBackgroundColor
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        // The back button is removed since this is a main tab
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
+
+
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
+      body: FutureBuilder<DocumentSnapshot>(
         future: _getUserData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          // *** FIX 2: IMPROVED ERROR HANDLING ***
-          // This will now show the specific error message from the exception
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('Could not load profile.'));
           }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Could not load profile data.'));
-          }
-
-          final userData = snapshot.data!;
+          final userData = snapshot.data!.data() as Map<String, dynamic>;
 
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -99,12 +54,20 @@ class _ProfileViewState extends State<ProfileView> {
                 name: userData['email']?.split('@').first ?? 'Patient',
                 email: userData['email'] ?? 'No email found',
               ),
-              const SizedBox(height: 24),
-              _buildDetailsSection(userData),
+              const SizedBox(height: 32),
+              // This is the new "My Details" button section
+              _buildSection([
+                _buildProfileOption(
+                  context, // Pass context for navigation
+                  Icons.person_outline,
+                  'My Details',
+                ),
+                // You can add more options here if needed
+              ]),
               const SizedBox(height: 16),
               _buildSection([
-                _buildProfileOption(Icons.delete_outline, 'Clear Cache'),
-                _buildProfileOption(Icons.history, 'Clear history'),
+                _buildProfileOption(context, Icons.delete_outline, 'Clear Cache'),
+                _buildProfileOption(context, Icons.history, 'Clear history'),
                 _buildLogoutOption(),
               ]),
               const SizedBox(height: 24),
@@ -115,7 +78,6 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  // Header with profile picture, name, email, and button
   Widget _buildProfileHeader({required String name, required String email}) {
     return Column(
       children: [
@@ -138,7 +100,7 @@ class _ProfileViewState extends State<ProfileView> {
         ElevatedButton(
           onPressed: () {},
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.green, // As per your image
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -150,53 +112,25 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  // Widget to display the fetched patient details
-  Widget _buildDetailsSection(Map<String, dynamic> userData) {
-    return _buildSection([
-      _buildDetailRow('Gender', userData['gender']),
-      _buildDetailRow('Height', userData['height']),
-      _buildDetailRow('Weight', userData['weight']),
-      _buildDetailRow('Diabetes Type', userData['diabetesType']),
-      _buildDetailRow('Takes Pills', userData['takesPills']?.toString()),
-      _buildDetailRow('Insulin Therapy', userData['insulinTherapy']),
-      _buildDetailRow('Glucose Unit', userData['glucoseUnit']),
-      _buildDetailRow('Carbs Unit', userData['carbsUnit']),
-      _buildDetailRow('Health Goals', (userData['healthGoals'] as List?)?.join(', ')),
-    ]);
-  }
-
-  // Helper to build a single row in the details section
-  Widget _buildDetailRow(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16, color: Colors.black54)),
-          Flexible(
-            child: Text(
-              value ?? 'Not set',
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Generic option row with icon, text, and arrow
-  Widget _buildProfileOption(IconData icon, String title) {
+  // Updated to handle navigation
+  Widget _buildProfileOption(BuildContext context, IconData icon, String title) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[800]),
       title: Text(title, style: const TextStyle(fontSize: 16)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {},
+      onTap: () {
+        // Navigation logic for the "My Details" button
+        if (title == 'My Details') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyDetailsView()),
+          );
+        }
+        // Add other onTap logic here for other buttons if needed
+      },
     );
   }
 
-  // Special logout option with red icon
   Widget _buildLogoutOption() {
     return ListTile(
       leading: const Icon(Icons.logout, color: Colors.red),
@@ -211,11 +145,10 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  // A container for a group of options
   Widget _buildSection(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white, // White background for the list tile sections
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
