@@ -1,4 +1,4 @@
-// lib/app/auth/login/models/login_model.dart
+// lib/app/auth/login/model/login_model.dart
 
 class LoginModel {
   String email;

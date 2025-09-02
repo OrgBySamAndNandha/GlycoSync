@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/Details/controller/detail_controller.dart';
 
-class DiabetesTypeStep extends StatefulWidget {
+class InsulinTherapyStep extends StatefulWidget {
   final DetailController controller;
-  const DiabetesTypeStep({super.key, required this.controller});
+  const InsulinTherapyStep({super.key, required this.controller});
 
   @override
-  State<DiabetesTypeStep> createState() => _DiabetesTypeStepState();
+  State<InsulinTherapyStep> createState() => _InsulinTherapyStepState();
 }
 
-class _DiabetesTypeStepState extends State<DiabetesTypeStep> {
-  String? _selectedType;
-
-  final List<String> diabetesTypes = [
-    'Type 1',
-    'Type 2',
-    'Gestational',
-    'LADA',
-    'MODY',
-    'Prediabetes',
-    'I don\'t know',
+class _InsulinTherapyStepState extends State<InsulinTherapyStep> {
+  String? _selectedTherapy;
+  final List<String> _therapyTypes = [
+    'Pen',
+    'Syringe',
+    'Pump',
+    'Not on insulin'
   ];
 
   @override
@@ -30,39 +26,35 @@ class _DiabetesTypeStepState extends State<DiabetesTypeStep> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'What is your diabetes type?',
+            'What insulin therapy are you on?',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 32),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: diabetesTypes.map((type) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: _buildTypeChip(context, type),
-                  );
-                }).toList(),
-              ),
-            ),
+          // Vertical list of therapy types
+          Column(
+            children: _therapyTypes.map((therapy) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: _buildTherapyChip(context, therapy),
+              );
+            }).toList(),
           ),
           const Spacer(),
           FloatingActionButton(
             onPressed: () {
-              if (_selectedType != null) {
-                widget.controller.model.diabetesType = _selectedType!;
-                // *** THIS IS THE FIX: It now correctly goes to the next page ***
+              if (_selectedTherapy != null) {
+                widget.controller.model.insulinTherapy = _selectedTherapy!;
                 widget.controller.nextPage();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please select a type.')),
+                  const SnackBar(
+                      content: Text('Please select a therapy type.')),
                 );
               }
             },
-            // Icon is now an arrow
             child: const Icon(Icons.arrow_forward_ios),
           ),
           const SizedBox(height: 20),
@@ -71,17 +63,17 @@ class _DiabetesTypeStepState extends State<DiabetesTypeStep> {
     );
   }
 
-  Widget _buildTypeChip(BuildContext context, String type) {
-    final bool isSelected = _selectedType == type;
+  Widget _buildTherapyChip(BuildContext context, String therapy) {
+    final bool isSelected = _selectedTherapy == therapy;
     return SizedBox(
       width: double.infinity,
       child: ChoiceChip(
-        label: Text(type),
+        label: Text(therapy),
         selected: isSelected,
         onSelected: (bool selected) {
           setState(() {
             if (selected) {
-              _selectedType = type;
+              _selectedTherapy = therapy;
             }
           });
         },

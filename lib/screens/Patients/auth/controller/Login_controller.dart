@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/Details/view/details_main_view.dart';
+import 'package:glycosync/screens/Patients/Patients_bottom_navbar/patients_navbar.dart'; // Import the new NavBar
 import 'package:glycosync/screens/Patients/auth/model/Login_model.dart';
-import 'package:glycosync/screens/Patients/home/view/home_view.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginController {
@@ -19,9 +19,11 @@ class LoginController {
 
       // Check if the document exists and if 'detailsCompleted' is true
       if (doc.exists && doc.data()?['detailsCompleted'] == true) {
+        // *** THIS IS THE IMPROVEMENT ***
+        // Navigate to the PatientsNavBar instead of the old HomeView
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeView()),
+          MaterialPageRoute(builder: (context) => const PatientsNavBar()),
         );
       } else {
         // Navigate to details screen if doc doesn't exist or details are not complete

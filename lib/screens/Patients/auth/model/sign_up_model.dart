@@ -1,4 +1,4 @@
-// lib/app/auth/signup/models/signup_model.dart
+// lib/app/auth/signup/model/signup_model.dart
 
 class SignUpModel {
   String email;

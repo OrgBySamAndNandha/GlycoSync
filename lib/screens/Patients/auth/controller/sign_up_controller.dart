@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:glycosync/screens/Patients/Details/view/details_main_view.dart';
 import 'package:glycosync/screens/Patients/auth/model/sign_up_model.dart';
 
 class SignUpController {
@@ -32,11 +33,14 @@ class SignUpController {
           'detailsCompleted': false, // Mark details as incomplete
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign up successful! Please log in.')),
+        // *** THIS IS THE FIX ***
+        // Instead of popping back to login, navigate directly to the details screen
+        // and remove all previous routes (login, signup) from the stack.
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const DetailsMainView()),
+              (route) => false,
         );
-        // Go back to the login screen
-        Navigator.of(context).pop();
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

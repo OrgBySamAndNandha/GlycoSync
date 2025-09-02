@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+class AppointmentView extends StatelessWidget {
+  const AppointmentView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class HomeView extends StatelessWidget {
               // Wrap the Text widget with a Center widget to center it horizontally.
               Center(
                 child: Text(
-                  'Home', // Capitalized for consistency
+                  'Appointments', // Capitalized for consistency
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

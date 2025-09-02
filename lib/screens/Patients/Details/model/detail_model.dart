@@ -16,6 +16,9 @@ class DetailModel {
   String glucoseUnit;
   String carbsUnit;
 
+  // New field for health goals
+  List<String> healthGoals;
+
   DetailModel({
     this.dateOfBirth,
     this.gender = '',
@@ -28,6 +31,22 @@ class DetailModel {
     this.glucoseMeter = '',
     this.glucoseUnit = 'mg/dL',
     this.carbsUnit = 'g',
+    this.healthGoals = const [], // Initialize as an empty list
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'gender': gender,
+      'height': height,
+      'weight': weight,
+      'diabetesType': diabetesType,
+      'takesPills': takesPills,
+      'insulinTherapy': insulinTherapy,
+      'glucoseUnit': glucoseUnit,
+      'carbsUnit': carbsUnit,
+      'healthGoals': healthGoals,
+      // Add other fields as needed
+    };
+  }
 }
 

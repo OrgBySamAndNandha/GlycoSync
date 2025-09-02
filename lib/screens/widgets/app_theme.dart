@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 // Define your app's color palette
 const Color primaryColor = Color(0xFF003366); // Dark Blue for buttons
-const Color backgroundColor = Color(0xFFE7F0DC); // Light Green for background
+const Color backgroundColor = Color(0xFFC4DAD2); // Light Green for background
 const Color accentColor = Colors.redAccent;
 
 // Define the global theme for the application
