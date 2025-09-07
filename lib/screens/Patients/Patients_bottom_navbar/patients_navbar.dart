@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:glycosync/screens/Patients/Health%20Records/view/health_records_view.dart';
-import 'package:glycosync/screens/Patients/Profile/view/profile_view.dart';
 import 'package:glycosync/screens/Patients/home/view/home_view.dart';
-
-import '../appointments/view/appointment_view.dart';
+// Import the new placeholder screens
+import 'package:glycosync/screens/Patients/routine/view/routine_view.dart';
+import 'package:glycosync/screens/Patients/profile/view/profile_view.dart';
 
 class PatientsNavBar extends StatefulWidget {
   const PatientsNavBar({super.key});
@@ -13,12 +12,13 @@ class PatientsNavBar extends StatefulWidget {
 }
 
 class _PatientsNavBarState extends State<PatientsNavBar> {
-  int _selectedIndex = 0;
+  // Set the initial index to 1 so the app opens on the Home screen
+  int _selectedIndex = 1;
 
+  // The list of screens that correspond to the nav bar items
   static const List<Widget> _widgetOptions = <Widget>[
+    RoutineView(),
     HomeView(),
-    AppointmentView(),
-    HealthRecordsView(),
     ProfileView(),
   ];
 
@@ -31,31 +31,19 @@ class _PatientsNavBarState extends State<PatientsNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // Allows the body to go behind the transparent navbar
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _widgetOptions,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
       bottomNavigationBar: BottomNavigationBar(
-        // *** THESE ARE THE CHANGES FOR TRANSPARENCY ***
-        backgroundColor: Colors.white, // Makes the background transparent
-        elevation: 0, // Removes the shadow
-
+        // Updated the items to the new three-tab structure
         items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt_outlined),
+            activeIcon: Icon(Icons.list_alt),
+            label: 'Routine',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
-            label: 'Appointments',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border_outlined),
-            activeIcon: Icon(Icons.favorite),
-            label: 'Records',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

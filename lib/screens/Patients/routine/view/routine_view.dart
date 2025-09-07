@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+class RoutineView extends StatelessWidget {
+  const RoutineView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Text('Profile Screen', style: TextStyle(fontSize: 24)),
+        child: Text('Routine / Tasks Screen', style: TextStyle(fontSize: 24)),
       ),
     );
   }
