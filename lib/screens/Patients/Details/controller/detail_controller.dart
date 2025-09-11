@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/Details/model/detail_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:glycosync/screens/Patients/home/view/home_view.dart';
+// IMPORT THE CORRECT NAVIGATION BAR
+import 'package:glycosync/screens/Patients/Patients_bottom_navbar/patients_navbar.dart';
 
 class DetailController {
   final DetailModel model = DetailModel();
@@ -47,24 +48,24 @@ class DetailController {
 
       await detailsDocRef.set(model.toMap());
 
-      final patientDocRef =
-      FirebaseFirestore.instance.collection('patients').doc(user.uid);
+      final patientDocRef = FirebaseFirestore.instance
+          .collection('patients')
+          .doc(user.uid);
 
-      await patientDocRef.update({
-        'detailsCompleted': true,
-        'uid': user.uid,
-      });
+      await patientDocRef.update({'detailsCompleted': true, 'uid': user.uid});
 
+      // *** THIS IS THE FIX ***
+      // Navigate to the PatientsNavBar which contains the bottom navigation
+      // instead of navigating directly to the HomeView.
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const HomeView()),
-            (route) => false,
+        MaterialPageRoute(builder: (context) => const PatientsNavBar()),
+        (route) => false,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save profile: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save profile: $e')));
     }
   }
 }
-

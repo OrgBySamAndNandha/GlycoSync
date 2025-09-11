@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../controller/home_controller.dart';
 import '../model/home_model.dart';
 
@@ -46,17 +47,10 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // --- UPDATED ANALYTICS CARD ---
                   _buildAnalyticsCard(context, model),
                   const SizedBox(height: 24),
-
-                  // --- CALENDAR CARD ---
                   _buildCalendarCard(context, model),
                   const SizedBox(height: 24),
-
-                  // --- NEW ROUTINE/TASKS CARD ---
-                  // This card only shows when in the "Day" view
                   if (model.currentViewType == AnalyticsViewType.day)
                     _buildTasksCard(context, model),
                 ],
@@ -68,7 +62,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // Widget for the Analytics Card with segmented buttons
+  // Widget for the Analytics Card with chart display
   Widget _buildAnalyticsCard(BuildContext context, HomeModel model) {
     return _buildSectionCard(
       context: context,
@@ -95,14 +89,72 @@ class _HomeViewState extends State<HomeView> {
               selectedForegroundColor: Colors.white,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             model.analyticsSummary,
             style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 16),
+          // Conditionally display the chart or an empty container
+          if (model.currentViewType != AnalyticsViewType.day &&
+              model.chartData.isNotEmpty)
+            SizedBox(
+              height: 200,
+              child: LineChart(_buildChartData(context, model)),
+            ),
         ],
       ),
+    );
+  }
+
+  // Helper to build the LineChartData
+  LineChartData _buildChartData(BuildContext context, HomeModel model) {
+    return LineChartData(
+      gridData: FlGridData(show: false),
+      titlesData: FlTitlesData(
+        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            getTitlesWidget: (value, meta) {
+              String text = '';
+              if (model.currentViewType == AnalyticsViewType.month) {
+                text = 'W${value.toInt()}'; // Week 1, Week 2, etc.
+              } else if (model.currentViewType == AnalyticsViewType.year) {
+                // Display month initial
+                text = DateFormat.MMM()
+                    .format(DateTime(0, value.toInt()))
+                    .substring(0, 1);
+              }
+              return SideTitleWidget(
+                axisSide: meta.axisSide,
+                child: Text(text),
+              );
+            },
+          ),
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      lineBarsData: [
+        LineChartBarData(
+          spots: model.chartData,
+          isCurved: true,
+          color: Theme.of(context).primaryColor,
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            color: Theme.of(context).primaryColor.withOpacity(0.3),
+          ),
+        ),
+      ],
     );
   }
 
@@ -141,24 +193,22 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // NEW: Widget for the Daily Tasks Card
+  // Widget for the Daily Tasks Card
   Widget _buildTasksCard(BuildContext context, HomeModel model) {
     return _buildSectionCard(
       context: context,
-      title: 'Routine for ${DateFormat.yMMMd().format(model.selectedDate)}',
+      title:
+          'Completed Levels for ${DateFormat.yMMMd().format(model.selectedDate)}',
       icon: Icons.list_alt,
       child: model.dailyTasks.isEmpty
-          ? const Center(child: Text('No tasks for today.'))
+          ? const Center(child: Text('No completed levels for this day.'))
           : ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: model.dailyTasks.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  leading: const Icon(
-                    Icons.check_circle_outline,
-                    color: Colors.green,
-                  ),
+                  leading: const Icon(Icons.check_circle, color: Colors.green),
                   title: Text(model.dailyTasks[index]),
                 );
               },
@@ -166,7 +216,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // Helper widget to create the styled cards for each section.
+  // Helper widget for card styling.
   Widget _buildSectionCard({
     required BuildContext context,
     required String title,
