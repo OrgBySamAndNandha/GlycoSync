@@ -7,7 +7,7 @@ import 'package:glycosync/screens/widgets/app_theme.dart';
 
 void main() async {
   // Ensure that Flutter widgets are initialized.
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); //auth
 
   // Initialize Firebase.
   await Firebase.initializeApp(
