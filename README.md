@@ -1,6 +1,6 @@
 # glycosync
 
-A new Flutter project.
+A new Flutter project. started
 
 ## Getting Started
 
