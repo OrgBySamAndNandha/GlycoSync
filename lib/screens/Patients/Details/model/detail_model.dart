@@ -1,5 +1,6 @@
 class DetailModel {
   // Personal Info
+  String name;
   DateTime? dateOfBirth;
   String gender;
   String height;
@@ -20,6 +21,7 @@ class DetailModel {
   List<String> healthGoals;
 
   DetailModel({
+    this.name = '',
     this.dateOfBirth,
     this.gender = '',
     this.height = '',
@@ -36,6 +38,7 @@ class DetailModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'name': name,
       'gender': gender,
       'height': height,
       'weight': weight,
@@ -49,4 +52,3 @@ class DetailModel {
     };
   }
 }
-

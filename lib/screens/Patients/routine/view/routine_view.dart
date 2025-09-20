@@ -32,10 +32,9 @@ class _RoutineViewState extends State<RoutineView> {
       appBar: AppBar(
         title: Text(
           "Today's Routine",
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
@@ -43,21 +42,118 @@ class _RoutineViewState extends State<RoutineView> {
       body: ValueListenableBuilder<RoutineModel>(
         valueListenable: _controller.modelNotifier,
         builder: (context, model, child) {
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: model.levels.length,
-            itemBuilder: (context, index) {
-              final level = model.levels[index];
-              return _buildLevelCard(context, level, index);
-            },
+          // --- NEW: Calculate totals from completed tasks ---
+          double totalCalories = 0;
+          double totalProtein = 0;
+          double totalCarbs = 0;
+          double totalFat = 0;
+
+          for (var level in model.levels) {
+            if (level.status == LevelStatus.completed) {
+              for (var task in level.subTasks) {
+                totalCalories += task.calories ?? 0;
+                totalProtein += task.protein ?? 0;
+                totalCarbs += task.carbs ?? 0;
+                totalFat += task.fat ?? 0;
+              }
+            }
+          }
+
+          // --- MODIFIED: Wrap ListView in a Column ---
+          return Column(
+            children: [
+              // --- NEW: Display the nutrition summary card ---
+              // Only show the card if some nutrition has been logged
+              if (totalCalories > 0)
+                _buildNutritionSummary(
+                  context,
+                  calories: totalCalories,
+                  protein: totalProtein,
+                  carbs: totalCarbs,
+                  fat: totalFat,
+                ),
+
+              // --- MODIFIED: Put ListView inside an Expanded widget ---
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: model.levels.length,
+                  itemBuilder: (context, index) {
+                    final level = model.levels[index];
+                    return _buildLevelCard(context, level, index);
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
     );
   }
 
+  // --- NEW: Nutrition Summary Card Widget ---
+  Widget _buildNutritionSummary(
+    BuildContext context, {
+    required double calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+  }) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Nutrition Gained Today',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildNutritionStat(
+                  'Calories',
+                  '${calories.toStringAsFixed(0)} kcal',
+                ),
+                _buildNutritionStat(
+                  'Protein',
+                  '${protein.toStringAsFixed(1)}g',
+                ),
+                _buildNutritionStat('Carbs', '${carbs.toStringAsFixed(1)}g'),
+                _buildNutritionStat('Fat', '${fat.toStringAsFixed(1)}g'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNutritionStat(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
+    );
+  }
+
   Widget _buildLevelCard(
-      BuildContext context, RoutineLevel level, int levelIndex) {
+    BuildContext context,
+    RoutineLevel level,
+    int levelIndex,
+  ) {
     final bool isLocked = level.status == LevelStatus.locked;
     final bool isCompleted = level.status == LevelStatus.completed;
 
@@ -97,8 +193,8 @@ class _RoutineViewState extends State<RoutineView> {
                       color: isCompleted
                           ? Colors.green
                           : (isLocked
-                              ? Colors.grey
-                              : Theme.of(context).primaryColor),
+                                ? Colors.grey
+                                : Theme.of(context).primaryColor),
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -108,9 +204,7 @@ class _RoutineViewState extends State<RoutineView> {
                         children: [
                           Text(
                             level.title,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
@@ -121,8 +215,11 @@ class _RoutineViewState extends State<RoutineView> {
                       ),
                     ),
                     if (!isLocked)
-                      const Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -142,4 +239,3 @@ class _RoutineViewState extends State<RoutineView> {
     );
   }
 }
-

@@ -51,6 +51,14 @@ class SubTask {
   final double glucoseImpact; // Crucial for analytics
   bool isCompleted;
 
+  // --- NEW: Nutritional Information ---
+  // Added nullable fields for nutritional data.
+  // Not all tasks (like exercise) will have this data.
+  final double? calories;
+  final double? protein;
+  final double? carbs;
+  final double? fat;
+
   SubTask({
     required this.title,
     required this.description,
@@ -60,6 +68,11 @@ class SubTask {
     this.gifPath,
     required this.glucoseImpact,
     this.isCompleted = false,
+    // --- NEW: Added to constructor ---
+    this.calories,
+    this.protein,
+    this.carbs,
+    this.fat,
   });
 }
 

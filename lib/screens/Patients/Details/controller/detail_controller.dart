@@ -24,6 +24,10 @@ class DetailController {
     );
   }
 
+  void updateName(String name) {
+    model.name = name;
+  }
+
   void updateGender(String gender) {
     model.gender = gender;
   }
@@ -52,7 +56,12 @@ class DetailController {
           .collection('patients')
           .doc(user.uid);
 
-      await patientDocRef.update({'detailsCompleted': true, 'uid': user.uid});
+      // Update the main patient document with name and other essential info
+      await patientDocRef.update({
+        'detailsCompleted': true,
+        'uid': user.uid,
+        'name': model.name, // Add name to the main patient document
+      });
 
       // *** THIS IS THE FIX ***
       // Navigate to the PatientsNavBar which contains the bottom navigation

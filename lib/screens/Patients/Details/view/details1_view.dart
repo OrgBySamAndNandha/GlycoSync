@@ -12,6 +12,13 @@ class PersonalInfoStep extends StatefulWidget {
 
 class _PersonalInfoStepState extends State<PersonalInfoStep> {
   String? _selectedGender;
+  final TextEditingController _nameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +28,35 @@ class _PersonalInfoStepState extends State<PersonalInfoStep> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
+            'Enter your details',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Your Name',
+              hintText: 'Enter your full name',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.person_outline),
+            ),
+            textCapitalization: TextCapitalization.words,
+            onChanged: (value) {
+              widget.controller.updateName(value);
+            },
+          ),
+          const SizedBox(height: 24),
+          Text(
             'What is your gender?',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const Spacer(),
           // Gender selection cards
@@ -48,6 +79,12 @@ class _PersonalInfoStepState extends State<PersonalInfoStep> {
           // Floating 'Next' button
           FloatingActionButton(
             onPressed: () {
+              if (_nameController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter your name')),
+                );
+                return;
+              }
               // Only proceed if a gender is selected
               if (_selectedGender != null) {
                 widget.controller.updateGender(_selectedGender!);
@@ -67,7 +104,10 @@ class _PersonalInfoStepState extends State<PersonalInfoStep> {
   }
 
   Widget _buildGenderCard(
-      BuildContext context, String gender, String lottieAsset) {
+    BuildContext context,
+    String gender,
+    String lottieAsset,
+  ) {
     final isSelected = _selectedGender == gender;
     return GestureDetector(
       onTap: () {

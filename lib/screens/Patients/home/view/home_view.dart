@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'dart:math' show min, max;
 import '../controller/home_controller.dart';
 import '../model/home_model.dart';
 
@@ -96,24 +97,114 @@ class _HomeViewState extends State<HomeView> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          // Conditionally display the chart or an empty container
           if (model.currentViewType != AnalyticsViewType.day &&
               model.chartData.isNotEmpty)
             SizedBox(
               height: 200,
-              child: LineChart(_buildChartData(context, model)),
+              // Use AspectRatio to maintain shape on different screen sizes
+              child: AspectRatio(
+                aspectRatio: 1.7,
+                child: LineChart(_buildChartData(context, model)),
+              ),
             ),
         ],
       ),
     );
   }
 
-  // Helper to build the LineChartData
   LineChartData _buildChartData(BuildContext context, HomeModel model) {
     return LineChartData(
-      gridData: FlGridData(show: false),
+      lineTouchData: LineTouchData(
+        enabled: true,
+        touchTooltipData: LineTouchTooltipData(
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          tooltipRoundedRadius: 4,
+          tooltipPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          tooltipMargin: 4,
+          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+            return touchedBarSpots.map((barSpot) {
+              String xAxisText;
+              if (model.currentViewType == AnalyticsViewType.month) {
+                xAxisText = 'Week ${barSpot.x.toInt()}';
+              } else {
+                xAxisText = DateFormat.MMMM().format(
+                  DateTime(0, barSpot.x.toInt()),
+                );
+              }
+              return LineTooltipItem(
+                '$xAxisText\n',
+                const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                children: [
+                  TextSpan(
+                    text: '${barSpot.y.toStringAsFixed(1)} mg/dL',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              );
+            }).toList();
+          },
+        ),
+        handleBuiltInTouches: true,
+        getTouchedSpotIndicator:
+            (LineChartBarData barData, List<int> spotIndexes) {
+              return spotIndexes.map((spotIndex) {
+                return TouchedSpotIndicatorData(
+                  FlLine(
+                    color: Theme.of(context).primaryColor.withOpacity(0.2),
+                    strokeWidth: 2,
+                    dashArray: [3, 3],
+                  ),
+                  FlDotData(
+                    getDotPainter: (spot, percent, barData, index) {
+                      return FlDotCirclePainter(
+                        radius: 4,
+                        color: Theme.of(context).primaryColor,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      );
+                    },
+                  ),
+                );
+              }).toList();
+            },
+      ),
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: false,
+        horizontalInterval: 20,
+        getDrawingHorizontalLine: (value) {
+          return FlLine(color: Colors.grey.withOpacity(0.15), strokeWidth: 1);
+        },
+      ),
       titlesData: FlTitlesData(
-        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 40,
+            interval: 40,
+            getTitlesWidget: (value, meta) {
+              return SideTitleWidget(
+                axisSide: meta.axisSide,
+                child: Text(
+                  '${value.toInt()}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
+              );
+            },
+          ),
+        ),
         rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
@@ -122,36 +213,81 @@ class _HomeViewState extends State<HomeView> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 30,
+            interval: 1,
             getTitlesWidget: (value, meta) {
               String text = '';
               if (model.currentViewType == AnalyticsViewType.month) {
-                text = 'W${value.toInt()}'; // Week 1, Week 2, etc.
+                text = 'W${value.toInt()}';
               } else if (model.currentViewType == AnalyticsViewType.year) {
-                // Display month initial
                 text = DateFormat.MMM()
                     .format(DateTime(0, value.toInt()))
                     .substring(0, 1);
               }
               return SideTitleWidget(
                 axisSide: meta.axisSide,
-                child: Text(text),
+                space: 10,
+                child: Text(
+                  text,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
               );
             },
           ),
         ),
       ),
-      borderData: FlBorderData(show: false),
+      borderData: FlBorderData(
+        show: true,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.withOpacity(0.2), width: 1),
+          left: BorderSide(color: Colors.grey.withOpacity(0.2), width: 1),
+        ),
+      ),
+      minX: model.chartData.isEmpty ? 0 : model.chartData.first.x,
+      maxX: model.chartData.isEmpty ? 0 : model.chartData.last.x,
+      minY: model.chartData.isEmpty
+          ? 0
+          : (model.chartData.map((e) => e.y).reduce(min) - 20).clamp(
+              0,
+              double.infinity,
+            ),
+      maxY: model.chartData.isEmpty
+          ? 100
+          : model.chartData.map((e) => e.y).reduce(max) + 20,
       lineBarsData: [
         LineChartBarData(
           spots: model.chartData,
           isCurved: true,
-          color: Theme.of(context).primaryColor,
-          barWidth: 4,
+          curveSmoothness: 0.35,
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).primaryColor,
+              Theme.of(context).primaryColor.withOpacity(0.8),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          barWidth: 3,
           isStrokeCapRound: true,
-          dotData: FlDotData(show: false),
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, barData, index) =>
+                FlDotCirclePainter(
+                  radius: 3,
+                  color: Theme.of(context).primaryColor,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                ),
+          ),
           belowBarData: BarAreaData(
             show: true,
-            color: Theme.of(context).primaryColor.withOpacity(0.3),
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).primaryColor.withOpacity(0.3),
+                Theme.of(context).primaryColor.withOpacity(0.0),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
         ),
       ],
@@ -236,11 +372,13 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 Icon(icon, color: Theme.of(context).primaryColor),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),

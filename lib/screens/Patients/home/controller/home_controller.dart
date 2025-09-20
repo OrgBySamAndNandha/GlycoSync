@@ -9,29 +9,26 @@ class HomeController {
   final ValueNotifier<HomeModel> modelNotifier;
 
   HomeController()
-      : modelNotifier =
-            ValueNotifier(HomeModel(selectedDate: DateTime.now()));
+    : modelNotifier = ValueNotifier(HomeModel(selectedDate: DateTime.now()));
 
-  // Called when the screen first loads or when dependencies change.
   void loadHomeData() {
     _updateAnalytics();
   }
 
-  // Called when the user selects a new date on the calendar.
   void onDateSelected(DateTime newDate) {
     modelNotifier.value = modelNotifier.value.copyWith(selectedDate: newDate);
     _updateAnalytics();
   }
 
-  // Called when the user taps on "Day", "Month", or "Year".
   void changeViewType(AnalyticsViewType newType) {
     if (modelNotifier.value.currentViewType != newType) {
-      modelNotifier.value = modelNotifier.value.copyWith(currentViewType: newType);
+      modelNotifier.value = modelNotifier.value.copyWith(
+        currentViewType: newType,
+      );
       _updateAnalytics();
     }
   }
 
-  // Main method to fetch and process data from Firestore.
   Future<void> _updateAnalytics() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -39,15 +36,13 @@ class HomeController {
     final viewType = modelNotifier.value.currentViewType;
     final selectedDate = modelNotifier.value.selectedDate;
 
-    // Set loading state
     modelNotifier.value = modelNotifier.value.copyWith(
       analyticsSummary: 'Loading...',
       chartData: [],
-      dailyTasks: [], // Clear previous tasks
+      dailyTasks: [],
     );
 
     try {
-      // Base query to get all completion records for the user
       final query = FirebaseFirestore.instance
           .collection('patients')
           .doc(user.uid)
@@ -71,22 +66,36 @@ class HomeController {
     }
   }
 
-  // --- Analytics Generation for Each View Type ---
-
-  Future<void> _generateDayAnalytics(
-      Query query, DateTime date) async {
+  // --- MODIFIED: This method now provides dynamic feedback ---
+  Future<void> _generateDayAnalytics(Query query, DateTime date) async {
     final dateString = DateFormat('yyyy-MM-dd').format(date);
-    final snapshot = await query.where('completionDate', isEqualTo: dateString).get();
+    final snapshot = await query
+        .where('completionDate', isEqualTo: dateString)
+        .get();
 
     double totalImpact = 0;
     List<String> tasks = [];
+
     if (snapshot.docs.isNotEmpty) {
       for (var doc in snapshot.docs) {
         totalImpact += doc['glucoseImpact'] ?? 0;
         tasks.add(doc['levelTitle'] ?? 'Completed Task');
       }
-      final summary =
-          "Today's routine adherence resulted in a calculated glucose change of ${totalImpact.toStringAsFixed(1)} mg/dL.";
+
+      String summary;
+      // Check if the net impact is positive, negative, or neutral
+      if (totalImpact > 0.1) {
+        // Using a small threshold to avoid floating point issues
+        summary =
+            "Today's net glucose impact is an estimated increase of ${totalImpact.toStringAsFixed(1)} mg/dL.";
+      } else if (totalImpact < -0.1) {
+        // Display the decrease as a positive number
+        summary =
+            "Today's net glucose impact is an estimated decrease of ${(-totalImpact).toStringAsFixed(1)} mg/dL.";
+      } else {
+        summary = "Today's net glucose impact is estimated to be neutral.";
+      }
+
       modelNotifier.value = modelNotifier.value.copyWith(
         analyticsSummary: summary,
         dailyTasks: tasks,
@@ -101,30 +110,38 @@ class HomeController {
     }
   }
 
-  Future<void> _generateMonthAnalytics(
-      Query query, DateTime date) async {
-    // Fetch all records for the selected month
+  Future<void> _generateMonthAnalytics(Query query, DateTime date) async {
     final startOfMonth = DateTime(date.year, date.month, 1);
     final endOfMonth = DateTime(date.year, date.month + 1, 0, 23, 59, 59);
 
     final snapshot = await query
-        .where('completedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-        .where('completedAt', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+        .where(
+          'completedAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+        )
+        .where(
+          'completedAt',
+          isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth),
+        )
         .get();
 
     if (snapshot.docs.isEmpty) {
       modelNotifier.value = modelNotifier.value.copyWith(
-          analyticsSummary: 'No data for this month.', chartData: []);
+        analyticsSummary: 'No data for this month.',
+        chartData: [],
+      );
       return;
     }
 
-    // Group data by week
     Map<int, double> weeklyData = {};
     for (var doc in snapshot.docs) {
       final docDate = (doc['completedAt'] as Timestamp).toDate();
-      final weekNumber = ((docDate.day - 1) / 7).floor() + 1; // W1, W2, etc.
-      weeklyData.update(weekNumber, (value) => value + (doc['glucoseImpact'] ?? 0),
-          ifAbsent: () => doc['glucoseImpact'] ?? 0);
+      final weekNumber = ((docDate.day - 1) / 7).floor() + 1;
+      weeklyData.update(
+        weekNumber,
+        (value) => value + (doc['glucoseImpact'] ?? 0),
+        ifAbsent: () => doc['glucoseImpact'] ?? 0,
+      );
     }
 
     List<FlSpot> spots = weeklyData.entries
@@ -132,38 +149,44 @@ class HomeController {
         .toList();
     spots.sort((a, b) => a.x.compareTo(b.x));
 
-
     modelNotifier.value = modelNotifier.value.copyWith(
       analyticsSummary:
-          'Weekly glucose impact overview for ${DateFormat('MMMM yyyy').format(date)}.',
+          'Weekly net glucose impact for ${DateFormat('MMMM yyyy').format(date)}.',
       chartData: spots,
     );
   }
 
-  Future<void> _generateYearAnalytics(
-      Query query, DateTime date) async {
-    // Fetch all records for the selected year
+  Future<void> _generateYearAnalytics(Query query, DateTime date) async {
     final startOfYear = DateTime(date.year, 1, 1);
     final endOfYear = DateTime(date.year, 12, 31, 23, 59, 59);
-     final snapshot = await query
-        .where('completedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfYear))
-        .where('completedAt', isLessThanOrEqualTo: Timestamp.fromDate(endOfYear))
+    final snapshot = await query
+        .where(
+          'completedAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfYear),
+        )
+        .where(
+          'completedAt',
+          isLessThanOrEqualTo: Timestamp.fromDate(endOfYear),
+        )
         .get();
-
 
     if (snapshot.docs.isEmpty) {
       modelNotifier.value = modelNotifier.value.copyWith(
-          analyticsSummary: 'No data for this year.', chartData: []);
+        analyticsSummary: 'No data for this year.',
+        chartData: [],
+      );
       return;
     }
 
-    // Group data by month
     Map<int, double> monthlyData = {};
     for (var doc in snapshot.docs) {
-       final docDate = (doc['completedAt'] as Timestamp).toDate();
+      final docDate = (doc['completedAt'] as Timestamp).toDate();
       final month = docDate.month;
-      monthlyData.update(month, (value) => value + (doc['glucoseImpact'] ?? 0),
-          ifAbsent: () => doc['glucoseImpact'] ?? 0);
+      monthlyData.update(
+        month,
+        (value) => value + (doc['glucoseImpact'] ?? 0),
+        ifAbsent: () => doc['glucoseImpact'] ?? 0,
+      );
     }
 
     List<FlSpot> spots = monthlyData.entries
@@ -172,7 +195,7 @@ class HomeController {
     spots.sort((a, b) => a.x.compareTo(b.x));
 
     modelNotifier.value = modelNotifier.value.copyWith(
-      analyticsSummary: 'Monthly glucose impact trend for ${date.year}.',
+      analyticsSummary: 'Monthly net glucose impact trend for ${date.year}.',
       chartData: spots,
     );
   }
@@ -181,4 +204,3 @@ class HomeController {
     modelNotifier.dispose();
   }
 }
-

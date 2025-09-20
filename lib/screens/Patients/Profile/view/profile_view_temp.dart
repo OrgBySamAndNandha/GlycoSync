@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../controller/profile_controller.dart';
 import '../model/profile_model.dart';
 
@@ -74,20 +75,19 @@ class _ProfileViewState extends State<ProfileView> {
                     );
                   }
 
-                  return Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildProfileHeader(profile),
-                          const SizedBox(height: 24),
-                          _buildGlucoseOverview(profile),
-                          const SizedBox(height: 24),
-                          _buildPersonalInfo(profile),
-                        ],
-                      ),
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileHeader(profile),
+                        const SizedBox(height: 24),
+                        _buildGlucoseOverview(profile),
+                        const SizedBox(height: 24),
+                        _buildPersonalInfo(profile),
+                        const SizedBox(height: 24),
+                        _buildGlucoseHistory(profile),
+                      ],
                     ),
                   );
                 },
@@ -101,8 +101,6 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildProfileHeader(ProfileModel profile) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         CircleAvatar(
           radius: 50,
@@ -122,70 +120,61 @@ class _ProfileViewState extends State<ProfileView> {
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
         ),
         Text(
           profile.email,
           style: Theme.of(
             context,
           ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-          textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
   Widget _buildGlucoseOverview(ProfileModel profile) {
-    return Container(
-      width: double.infinity,
-      child: Card(
-        elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.trending_up,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Glucose Overview',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildGlucoseInfoCard(
-                    'Current',
-                    '${profile.currentPredictedGlucose.toStringAsFixed(1)} mg/dL',
-                    profile.glucoseTrend,
-                  ),
-                  _buildGlucoseInfoCard(
-                    'Initial',
-                    '${profile.initialGlucoseLevel.toStringAsFixed(1)} mg/dL',
-                    'Baseline',
-                  ),
-                  _buildGlucoseInfoCard(
-                    'Daily Change',
-                    '${profile.averageDailyChange.toStringAsFixed(1)} mg/dL',
-                    'Average',
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.trending_up, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  'Glucose Overview',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildGlucoseInfoCard(
+                  'Current',
+                  '${profile.currentPredictedGlucose.toStringAsFixed(1)} mg/dL',
+                  profile.glucoseTrend,
+                ),
+                _buildGlucoseInfoCard(
+                  'Initial',
+                  '${profile.initialGlucoseLevel.toStringAsFixed(1)} mg/dL',
+                  'Baseline',
+                ),
+                _buildGlucoseInfoCard(
+                  'Daily Change',
+                  '${profile.averageDailyChange.toStringAsFixed(1)} mg/dL',
+                  'Average',
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -254,8 +243,6 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
             const Divider(height: 24),
-            _buildInfoRow('Name', profile.name),
-            _buildInfoRow('Email', profile.email),
             _buildInfoRow('Age', '${profile.age} years'),
             _buildInfoRow('Gender', profile.gender),
             _buildInfoRow('Weight', '${profile.weight} kg'),
@@ -281,6 +268,77 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGlucoseHistory(ProfileModel profile) {
+    if (profile.glucoseHistory.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('No glucose history available'),
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.history, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  'Recent Activities',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: profile.glucoseHistory.length.clamp(0, 5),
+              itemBuilder: (context, index) {
+                final record = profile.glucoseHistory[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(
+                      context,
+                    ).primaryColor.withOpacity(0.1),
+                    child: Icon(
+                      record.glucoseImpact > 0
+                          ? Icons.trending_up
+                          : Icons.trending_down,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  title: Text(record.activityType),
+                  subtitle: Text(DateFormat('MMM d, yyyy').format(record.date)),
+                  trailing: Text(
+                    '${record.glucoseImpact > 0 ? '+' : ''}${record.glucoseImpact.toStringAsFixed(1)} mg/dL',
+                    style: TextStyle(
+                      color: record.glucoseImpact > 0
+                          ? Colors.red
+                          : Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

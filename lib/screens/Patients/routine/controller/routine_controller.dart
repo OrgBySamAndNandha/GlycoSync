@@ -55,11 +55,6 @@ class RoutineController {
       }
     }
 
-    // If all levels are completed, ensure the last one doesn't unlock a non-existent next level.
-    if (staticModel.levels.every((l) => l.status == LevelStatus.completed)) {
-      // All good, nothing more to do.
-    }
-
     // 4. Update the notifier with the final, merged state.
     modelNotifier.value = staticModel;
   }
@@ -100,12 +95,11 @@ class RoutineController {
 
     level.status = LevelStatus.completed;
 
-    // Unlock the next level if it exists
     if (levelIndex + 1 < currentModel.levels.length) {
       currentModel.levels[levelIndex + 1].status = LevelStatus.unlocked;
     }
 
-    // Calculate total glucose impact for the completed level
+    // This calculation now correctly sums positive and negative impacts
     final double totalImpact = level.subTasks.fold(
       0.0,
       (sum, task) => sum + task.glucoseImpact,
@@ -120,19 +114,18 @@ class RoutineController {
 
       await collectionRef.add({
         'levelTitle': level.title,
-        'glucoseImpact': totalImpact,
+        'glucoseImpact':
+            totalImpact, // This can now be positive, negative, or zero
         'completionDate': DateFormat('yyyy-MM-dd').format(DateTime.now()),
         'completedAt': Timestamp.now(),
       });
 
-      // Update the UI
       modelNotifier.value = currentModel.copyWith(levels: currentModel.levels);
 
-      // Give feedback and navigate back
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('${level.title} completed!')));
-      Navigator.pop(context); // Go back to the routine overview
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -157,30 +150,38 @@ class RoutineController {
             SubTask(
               title: 'Warm Lemon Water',
               description: 'Kickstart your metabolism and hydrate.',
-              glucoseImpact: 1,
+              glucoseImpact: 0.5, // CORRECTED: Slight positive impact
               instructions: [
                 'Mix the juice of half a lemon into a glass (250ml) of warm water.',
                 'Drink this on an empty stomach.',
               ],
               rationale:
                   'Lemon water can help in cleansing the system and provides a good dose of Vitamin C.',
+              calories: 5,
+              protein: 0.1,
+              carbs: 1.5,
+              fat: 0,
             ),
             SubTask(
               title: 'Fenugreek Water',
               description: 'A traditional remedy for blood sugar regulation.',
-              glucoseImpact: 2,
+              glucoseImpact: -1.0, // CORRECTED: Helps lower glucose
               instructions: [
                 'Soak 1 teaspoon (5 grams) of fenugreek seeds in a glass (250ml) of water overnight.',
                 'In the morning, drink the water and chew the seeds.',
               ],
               rationale:
                   'Fenugreek seeds are high in soluble fiber, which helps lower blood sugar by slowing down carbohydrate digestion and absorption.',
+              calories: 15,
+              protein: 1,
+              carbs: 3,
+              fat: 0.5,
             ),
             SubTask(
               title: 'Yoga for Diabetes',
               description:
                   'A 20-minute session to improve insulin sensitivity.',
-              glucoseImpact: 2,
+              glucoseImpact: -5.0, // CORRECTED: Exercise lowers glucose
               instructions: [
                 'Sun Salutation (Surya Namaskar): 5-7 rounds.',
                 'Legs-Up-The-Wall Pose (Viparita Karani): Hold for 2-3 minutes.',
@@ -200,7 +201,8 @@ class RoutineController {
             SubTask(
               title: 'Vegetable Oats Upma',
               description: 'A fiber-rich breakfast for sustained energy.',
-              glucoseImpact: 5,
+              glucoseImpact:
+                  15.0, // CORRECTED: Significant positive impact from carbs
               ingredients: [
                 'Rolled Oats: 40 grams',
                 'Mixed Vegetables (Carrots, Peas, Beans): 50 grams, finely chopped',
@@ -218,6 +220,10 @@ class RoutineController {
               ],
               rationale:
                   'Oats are a great source of complex carbohydrates and beta-glucan fiber, which slows glucose absorption.',
+              calories: 250,
+              protein: 8,
+              carbs: 45,
+              fat: 5,
             ),
           ],
         ),
@@ -229,10 +235,15 @@ class RoutineController {
             SubTask(
               title: 'Handful of Almonds',
               description: 'A nutrient-dense snack to prevent hunger.',
-              glucoseImpact: 3,
+              glucoseImpact:
+                  2.0, // CORRECTED: Low GI, but still a positive impact
               instructions: ['Consume about 10-12 almonds (around 15 grams).'],
               rationale:
                   'Almonds are rich in healthy fats, fiber, and protein, and have a very low glycemic index, making them an excellent snack for blood sugar control.',
+              calories: 100,
+              protein: 4,
+              carbs: 4,
+              fat: 9,
             ),
           ],
         ),
@@ -244,7 +255,7 @@ class RoutineController {
             SubTask(
               title: 'Cucumber & Tomato Salad',
               description: 'A pre-lunch salad to slow sugar absorption.',
-              glucoseImpact: 2,
+              glucoseImpact: 1.0, // CORRECTED: Very low positive impact
               instructions: [
                 'Combine 50g of sliced cucumber and 50g of sliced tomato.',
                 'Add a squeeze of lemon juice and a pinch of black pepper.',
@@ -252,11 +263,16 @@ class RoutineController {
               ],
               rationale:
                   'The fiber in the salad creates a "gel" in the stomach, slowing the digestion of the meal that follows, leading to a more gradual rise in blood sugar.',
+              calories: 25,
+              protein: 1,
+              carbs: 5,
+              fat: 0.2,
             ),
             SubTask(
               title: 'The Balanced Plate',
               description: 'A wholesome meal with a good mix of nutrients.',
-              glucoseImpact: 8,
+              glucoseImpact:
+                  25.0, // CORRECTED: Largest meal, largest positive impact
               instructions: [
                 'Chapattis: 2 small whole wheat (or multigrain) chapattis.',
                 'Dal: 1 small bowl (100g) of cooked lentils (like moong or toor dal).',
@@ -265,6 +281,10 @@ class RoutineController {
               ],
               rationale:
                   'This combination ensures a balanced intake of macronutrients, preventing energy crashes and keeping you full for longer.',
+              calories: 450,
+              protein: 20,
+              carbs: 60,
+              fat: 12,
             ),
           ],
         ),
@@ -276,7 +296,8 @@ class RoutineController {
             SubTask(
               title: 'Spiced Buttermilk (Chaas)',
               description: 'A refreshing, probiotic-rich drink.',
-              glucoseImpact: 3,
+              glucoseImpact:
+                  3.0, // CORRECTED: Contains lactose, positive impact
               instructions: [
                 'Blend 100ml of low-fat yogurt with 150ml of water.',
                 'Add a pinch of roasted cumin powder and salt.',
@@ -284,11 +305,15 @@ class RoutineController {
               ],
               rationale:
                   'Buttermilk is low in fat and its probiotics are great for gut health. It\'s a much better alternative to sugary teas or coffees.',
+              calories: 50,
+              protein: 3,
+              carbs: 4,
+              fat: 2.5,
             ),
             SubTask(
               title: '5-Minute Desk Stretch',
               description: 'Relieve stiffness and improve blood flow.',
-              glucoseImpact: 2,
+              glucoseImpact: -1.0, // CORRECTED: Minor activity, negative impact
               instructions: [
                 'Neck Rolls: Gently roll your neck from side to side (3 times each way).',
                 'Shoulder Shrugs: Lift your shoulders to your ears, hold, and release (5 times).',
@@ -308,7 +333,8 @@ class RoutineController {
             SubTask(
               title: 'Paneer & Veggie Stir-fry',
               description: 'A light, protein-packed dinner.',
-              glucoseImpact: 7,
+              glucoseImpact:
+                  8.0, // CORRECTED: Low carb, moderate positive impact
               ingredients: [
                 'Paneer (Cottage Cheese): 50 grams, cubed',
                 'Mixed Bell Peppers: 75 grams, sliced',
@@ -324,11 +350,15 @@ class RoutineController {
               ],
               rationale:
                   'An early, low-carb dinner prevents high blood sugar levels while you sleep, promoting restful sleep and better morning glucose readings.',
+              calories: 220,
+              protein: 12,
+              carbs: 8,
+              fat: 15,
             ),
             SubTask(
               title: 'Gentle Stroll',
               description: 'A 15-minute slow and steady walk after dinner.',
-              glucoseImpact: 2,
+              glucoseImpact: -4.0, // CORRECTED: Post-meal walk is effective
               gifPath: 'assets/gifs/walking.gif',
               rationale:
                   'Helps your body use the glucose from your dinner for energy, reducing the amount circulating in your blood.',
@@ -344,7 +374,7 @@ class RoutineController {
             SubTask(
               title: 'Cinnamon & Turmeric Milk',
               description: 'A warm, soothing drink to help you relax.',
-              glucoseImpact: 2,
+              glucoseImpact: -1.0, // CORRECTED: Cinnamon helps regulate
               instructions: [
                 'Gently warm 150ml of low-fat milk (or almond milk).',
                 'Add a pinch of turmeric and a pinch of cinnamon powder.',
@@ -352,11 +382,15 @@ class RoutineController {
               ],
               rationale:
                   'Cinnamon is known to have properties that can help with blood sugar regulation, while turmeric has anti-inflammatory benefits. A warm drink before bed is also calming.',
+              calories: 80,
+              protein: 5,
+              carbs: 8,
+              fat: 3,
             ),
             SubTask(
               title: 'Daily Foot Check',
               description: 'An essential daily habit to prevent complications.',
-              glucoseImpact: 0,
+              glucoseImpact: 0.0, // CORRECTED: No direct glucose impact
               instructions: [
                 'Wash your feet with lukewarm water and mild soap.',
                 'Dry them thoroughly, especially between the toes.',
