@@ -1,64 +1,60 @@
-import 'glucose_record.dart';
+import 'package:flutter/foundation.dart';
 
+// Represents the data for a single day in the weekly report.
+class DailyReportData {
+  final DateTime date;
+  final double netGlucoseImpact;
+  final double totalProtein;
+  final double totalCarbs;
+  final double totalFat;
+
+  DailyReportData({
+    required this.date,
+    this.netGlucoseImpact = 0.0,
+    this.totalProtein = 0.0,
+    this.totalCarbs = 0.0,
+    this.totalFat = 0.0,
+  });
+}
+
+// Represents all the data needed for the Profile View.
 class ProfileModel {
-  final String name;
-  final String email;
-  final int age;
-  final double weight;
-  final double height;
-  final String gender;
-  final double initialGlucoseLevel;
-  final double currentPredictedGlucose;
-  final String glucoseTrend;
-  final double averageDailyChange;
-  final List<GlucoseRecord> glucoseHistory;
+  final String patientName;
+  final String patientEmail;
+  final String diabetesType;
+  final String height;
+  final String weight;
+  final bool isLoading;
+  final List<DailyReportData> weeklyReportData;
 
-  const ProfileModel({
-    required this.name,
-    required this.email,
-    required this.age,
-    required this.weight,
-    required this.height,
-    required this.gender,
-    required this.initialGlucoseLevel,
-    required this.currentPredictedGlucose,
-    required this.glucoseTrend,
-    required this.averageDailyChange,
-    required this.glucoseHistory,
+  ProfileModel({
+    this.patientName = 'Loading...',
+    this.patientEmail = 'Loading...',
+    this.diabetesType = '-',
+    this.height = '-',
+    this.weight = '-',
+    this.isLoading = true,
+    this.weeklyReportData = const [],
   });
 
-  factory ProfileModel.fromJson(Map<String, dynamic> json) {
+  // Helper method for immutable updates.
+  ProfileModel copyWith({
+    String? patientName,
+    String? patientEmail,
+    String? diabetesType,
+    String? height,
+    String? weight,
+    bool? isLoading,
+    List<DailyReportData>? weeklyReportData,
+  }) {
     return ProfileModel(
-      name: json['name'] as String,
-      email: json['email'] as String,
-      age: json['age'] as int,
-      gender: json['gender'] as String,
-      weight: (json['weight'] as num).toDouble(),
-      height: (json['height'] as num).toDouble(),
-      initialGlucoseLevel: (json['initialGlucoseLevel'] as num).toDouble(),
-      currentPredictedGlucose: (json['currentPredictedGlucose'] as num)
-          .toDouble(),
-      glucoseTrend: json['glucoseTrend'] as String,
-      averageDailyChange: (json['averageDailyChange'] as num).toDouble(),
-      glucoseHistory: (json['glucoseHistory'] as List)
-          .map((e) => GlucoseRecord.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      patientName: patientName ?? this.patientName,
+      patientEmail: patientEmail ?? this.patientEmail,
+      diabetesType: diabetesType ?? this.diabetesType,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
+      isLoading: isLoading ?? this.isLoading,
+      weeklyReportData: weeklyReportData ?? this.weeklyReportData,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'email': email,
-      'age': age,
-      'gender': gender,
-      'weight': weight,
-      'height': height,
-      'initialGlucoseLevel': initialGlucoseLevel,
-      'currentPredictedGlucose': currentPredictedGlucose,
-      'glucoseTrend': glucoseTrend,
-      'averageDailyChange': averageDailyChange,
-      'glucoseHistory': glucoseHistory.map((e) => e.toJson()).toList(),
-    };
   }
 }

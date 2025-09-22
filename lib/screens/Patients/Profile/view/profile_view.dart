@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../controller/profile_controller.dart';
 import '../model/profile_model.dart';
 
@@ -11,12 +13,13 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   late final ProfileController _controller;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _controller = ProfileController();
-    _controller.loadProfileData();
+    _controller.fetchProfileData();
   }
 
   @override
@@ -25,263 +28,262 @@ class _ProfileViewState extends State<ProfileView> {
     super.dispose();
   }
 
+  // Function to show the date picker and fetch new data
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+      _controller.onDateSelected(picked);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile'), centerTitle: true),
-      body: ValueListenableBuilder<bool>(
-        valueListenable: _controller.isLoadingNotifier,
-        builder: (context, isLoading, child) {
-          if (isLoading) {
+      appBar: AppBar(
+        title: Text(
+          "Profile",
+          style: Theme.of(context)
+              .textTheme
+              .headlineMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      ),
+      body: ValueListenableBuilder<ProfileModel>(
+        valueListenable: _controller.modelNotifier,
+        builder: (context, model, child) {
+          if (model.isLoading && model.patientName == 'Loading...') {
             return const Center(child: CircularProgressIndicator());
           }
-
-          return ValueListenableBuilder<String?>(
-            valueListenable: _controller.errorNotifier,
-            builder: (context, error, child) {
-              if (error != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        error,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _controller.loadProfileData,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ValueListenableBuilder<ProfileModel?>(
-                valueListenable: _controller.profileNotifier,
-                builder: (context, profile, child) {
-                  if (profile == null) {
-                    return const Center(
-                      child: Text('No profile data available'),
-                    );
-                  }
-
-                  return Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildProfileHeader(profile),
-                          const SizedBox(height: 24),
-                          _buildGlucoseOverview(profile),
-                          const SizedBox(height: 24),
-                          _buildPersonalInfo(profile),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildProfileHeader(context, model),
+                const SizedBox(height: 24),
+                _buildHealthSnapshot(context, model),
+                const SizedBox(height: 24),
+                _buildWeeklyReport(context, model),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildProfileHeader(ProfileModel profile) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-          child: Text(
-            profile.name.substring(0, 1).toUpperCase(),
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          profile.name,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        Text(
-          profile.email,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGlucoseOverview(ProfileModel profile) {
-    return Container(
-      width: double.infinity,
-      child: Card(
-        elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.trending_up,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Glucose Overview',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildGlucoseInfoCard(
-                    'Current',
-                    '${profile.currentPredictedGlucose.toStringAsFixed(1)} mg/dL',
-                    profile.glucoseTrend,
-                  ),
-                  _buildGlucoseInfoCard(
-                    'Initial',
-                    '${profile.initialGlucoseLevel.toStringAsFixed(1)} mg/dL',
-                    'Baseline',
-                  ),
-                  _buildGlucoseInfoCard(
-                    'Daily Change',
-                    '${profile.averageDailyChange.toStringAsFixed(1)} mg/dL',
-                    'Average',
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlucoseInfoCard(String title, String value, String subtitle) {
-    return Expanded(
-      child: Card(
-        elevation: 0,
-        color: Theme.of(context).primaryColor.withOpacity(0.1),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-          child: Column(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPersonalInfo(ProfileModel profile) {
+  Widget _buildProfileHeader(BuildContext context, ProfileModel model) {
     return Card(
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  color: Theme.of(context).primaryColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Personal Information',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
+            const CircleAvatar(
+              radius: 30,
+              child: Icon(Icons.person, size: 30),
             ),
-            const Divider(height: 24),
-            _buildInfoRow('Name', profile.name),
-            _buildInfoRow('Email', profile.email),
-            _buildInfoRow('Age', '${profile.age} years'),
-            _buildInfoRow('Gender', profile.gender),
-            _buildInfoRow('Weight', '${profile.weight} kg'),
-            _buildInfoRow('Height', '${profile.height} cm'),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    model.patientName,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Text(model.patientEmail,
+                      style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.red),
+              onPressed: () => _controller.signOut(context),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
+  Widget _buildHealthSnapshot(BuildContext context, ProfileModel model) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Health Snapshot',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
-          ),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem('Diabetes Type', model.diabetesType),
+                _buildStatItem('Height', '${model.height} cm'),
+                _buildStatItem('Weight', '${model.weight} kg'),
+              ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _buildWeeklyReport(BuildContext context, ProfileModel model) {
+    // Calculate weekly totals from the model
+    final weeklyTotalProtein =
+        model.weeklyReportData.fold(0.0, (sum, day) => sum + day.totalProtein);
+    final weeklyTotalCarbs =
+        model.weeklyReportData.fold(0.0, (sum, day) => sum + day.totalCarbs);
+    final weeklyTotalFat =
+        model.weeklyReportData.fold(0.0, (sum, day) => sum + day.totalFat);
+    final weeklyAvgGlucose = model.weeklyReportData
+            .fold(0.0, (sum, day) => sum + day.netGlucoseImpact) /
+        (model.weeklyReportData.isEmpty ? 1 : model.weeklyReportData.length);
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Weekly Report',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.calendar_today, size: 16),
+                  label: Text(DateFormat.yMMMd().format(_selectedDate)),
+                  onPressed: () => _selectDate(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (model.isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (model.weeklyReportData.isEmpty)
+              const Center(child: Text('No data for this week.'))
+            else
+              Column(
+                children: [
+                  _buildStatItem(
+                      'Avg. Glucose Impact',
+                      '${weeklyAvgGlucose.toStringAsFixed(1)} mg/dL'),
+                  const Divider(height: 24),
+                  SizedBox(
+                    height: 200,
+                    child: BarChart(_buildBarChartData(model.weeklyReportData)),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.download),
+                    label: const Text('Download Report'),
+                    onPressed: () {
+                      _controller.generateAndDownloadReport();
+                    },
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  BarChartData _buildBarChartData(List<DailyReportData> data) {
+    return BarChartData(
+      alignment: BarChartAlignment.spaceAround,
+      maxY: 50, // Adjust based on expected data range
+      minY: -20,
+      barTouchData: BarTouchData(enabled: false),
+      titlesData: FlTitlesData(
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: (value, meta) {
+              final day = data[value.toInt()].date;
+              return SideTitleWidget(
+                axisSide: meta.axisSide,
+                child: Text(DateFormat.E().format(day)), // e.g., 'Mon'
+              );
+            },
+            reservedSize: 30,
+          ),
+        ),
+      ),
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: false,
+        horizontalInterval: 10,
+        getDrawingHorizontalLine: (value) => FlLine(
+          color: Colors.grey.withOpacity(0.2),
+          strokeWidth: 1,
+        ),
+      ),
+      borderData: FlBorderData(show: false),
+      barGroups: data
+          .asMap()
+          .entries
+          .map(
+            (entry) => BarChartGroupData(
+              x: entry.key,
+              barRods: [
+                BarChartRodData(
+                  toY: entry.value.netGlucoseImpact,
+                  color: entry.value.netGlucoseImpact >= 0
+                      ? Colors.orange
+                      : Colors.blue,
+                  width: 16,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                )
+              ],
+            ),
+          )
+          .toList(),
     );
   }
 }
