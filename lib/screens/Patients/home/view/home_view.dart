@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' show min, max;
 import '../controller/home_controller.dart';
 import '../model/home_model.dart';
 
@@ -13,8 +12,13 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
+// --- NEW: Enum to manage the state of the analytics card view ---
+enum _AnalyticsCardView { glucose, nutrition }
+
 class _HomeViewState extends State<HomeView> {
   late final HomeController _controller;
+  // --- NEW: State variable to track the selected view ---
+  _AnalyticsCardView _currentAnalyticsView = _AnalyticsCardView.glucose;
 
   @override
   void initState() {
@@ -52,8 +56,7 @@ class _HomeViewState extends State<HomeView> {
                   const SizedBox(height: 24),
                   _buildCalendarCard(context, model),
                   const SizedBox(height: 24),
-                  if (model.currentViewType == AnalyticsViewType.day)
-                    _buildTasksCard(context, model),
+                  _buildTasksCard(context, model),
                 ],
               ),
             ),
@@ -63,26 +66,35 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // Widget for the Analytics Card with chart display
+  // --- WIDGET MODIFIED: To show selectable views for Glucose and Nutrition ---
   Widget _buildAnalyticsCard(BuildContext context, HomeModel model) {
+    final double totalGrams =
+        model.totalProtein + model.totalCarbs + model.totalFat;
+    final bool hasData = totalGrams > 0;
+
     return _buildSectionCard(
       context: context,
-      title: 'Analytics',
-      icon: Icons.bar_chart,
+      title: "Today's Analytics",
+      icon: Icons.analytics_outlined,
       child: Column(
         children: [
-          SegmentedButton<AnalyticsViewType>(
+          // --- NEW: Segmented button to switch between views ---
+          SegmentedButton<_AnalyticsCardView>(
             segments: const [
-              ButtonSegment(value: AnalyticsViewType.day, label: Text('Day')),
               ButtonSegment(
-                value: AnalyticsViewType.month,
-                label: Text('Month'),
+                value: _AnalyticsCardView.glucose,
+                label: Text('Glucose'),
               ),
-              ButtonSegment(value: AnalyticsViewType.year, label: Text('Year')),
+              ButtonSegment(
+                value: _AnalyticsCardView.nutrition,
+                label: Text('Nutrition'),
+              ),
             ],
-            selected: {model.currentViewType},
+            selected: {_currentAnalyticsView},
             onSelectionChanged: (newSelection) {
-              _controller.changeViewType(newSelection.first);
+              setState(() {
+                _currentAnalyticsView = newSelection.first;
+              });
             },
             style: SegmentedButton.styleFrom(
               backgroundColor: Colors.grey.shade200,
@@ -91,210 +103,142 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            model.analyticsSummary,
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
+
+          // --- NEW: AnimatedSwitcher for a smooth transition between views ---
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _currentAnalyticsView == _AnalyticsCardView.glucose
+                // --- GLUCOSE VIEW ---
+                ? Container(
+                    key: const ValueKey('glucose_view'),
+                    height: 150, // Set a fixed height to prevent layout jumps
+                    alignment: Alignment.center,
+                    child: Text(
+                      model.analyticsSummary,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                // --- NUTRITION VIEW ---
+                : Container(
+                    key: const ValueKey('nutrition_view'),
+                    height: 150, // Match the height for a smooth transition
+                    child: hasData
+                        ? Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: PieChart(
+                                  PieChartData(
+                                    sections: _buildPieChartSections(
+                                      model,
+                                      totalGrams,
+                                    ),
+                                    centerSpaceRadius: 40,
+                                    sectionsSpace: 2,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildLegendItem(
+                                      color: Colors.blue.shade400,
+                                      text:
+                                          'Protein (${model.totalProtein.toStringAsFixed(1)}g)',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildLegendItem(
+                                      color: Colors.orange.shade400,
+                                      text:
+                                          'Carbs (${model.totalCarbs.toStringAsFixed(1)}g)',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildLegendItem(
+                                      color: Colors.red.shade400,
+                                      text:
+                                          'Fat (${model.totalFat.toStringAsFixed(1)}g)',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Center(
+                            child: Text(
+                              'Complete a routine to see nutrition details.',
+                            ),
+                          ),
+                  ),
           ),
-          const SizedBox(height: 16),
-          if (model.currentViewType != AnalyticsViewType.day &&
-              model.chartData.isNotEmpty)
-            SizedBox(
-              height: 200,
-              // Use AspectRatio to maintain shape on different screen sizes
-              child: AspectRatio(
-                aspectRatio: 1.7,
-                child: LineChart(_buildChartData(context, model)),
-              ),
-            ),
         ],
       ),
     );
   }
 
-  LineChartData _buildChartData(BuildContext context, HomeModel model) {
-    return LineChartData(
-      lineTouchData: LineTouchData(
-        enabled: true,
-        touchTooltipData: LineTouchTooltipData(
-          fitInsideHorizontally: true,
-          fitInsideVertically: true,
-          tooltipRoundedRadius: 4,
-          tooltipPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ),
-          tooltipMargin: 4,
-          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-            return touchedBarSpots.map((barSpot) {
-              String xAxisText;
-              if (model.currentViewType == AnalyticsViewType.month) {
-                xAxisText = 'Week ${barSpot.x.toInt()}';
-              } else {
-                xAxisText = DateFormat.MMMM().format(
-                  DateTime(0, barSpot.x.toInt()),
-                );
-              }
-              return LineTooltipItem(
-                '$xAxisText\n',
-                const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                children: [
-                  TextSpan(
-                    text: '${barSpot.y.toStringAsFixed(1)} mg/dL',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              );
-            }).toList();
-          },
-        ),
-        handleBuiltInTouches: true,
-        getTouchedSpotIndicator:
-            (LineChartBarData barData, List<int> spotIndexes) {
-              return spotIndexes.map((spotIndex) {
-                return TouchedSpotIndicatorData(
-                  FlLine(
-                    color: Theme.of(context).primaryColor.withOpacity(0.2),
-                    strokeWidth: 2,
-                    dashArray: [3, 3],
-                  ),
-                  FlDotData(
-                    getDotPainter: (spot, percent, barData, index) {
-                      return FlDotCirclePainter(
-                        radius: 4,
-                        color: Theme.of(context).primaryColor,
-                        strokeWidth: 2,
-                        strokeColor: Colors.white,
-                      );
-                    },
-                  ),
-                );
-              }).toList();
-            },
-      ),
-      gridData: FlGridData(
-        show: true,
-        drawVerticalLine: false,
-        horizontalInterval: 20,
-        getDrawingHorizontalLine: (value) {
-          return FlLine(color: Colors.grey.withOpacity(0.15), strokeWidth: 1);
-        },
-      ),
-      titlesData: FlTitlesData(
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 40,
-            interval: 40,
-            getTitlesWidget: (value, meta) {
-              return SideTitleWidget(
-                axisSide: meta.axisSide,
-                child: Text(
-                  '${value.toInt()}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-              );
-            },
-          ),
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 30,
-            interval: 1,
-            getTitlesWidget: (value, meta) {
-              String text = '';
-              if (model.currentViewType == AnalyticsViewType.month) {
-                text = 'W${value.toInt()}';
-              } else if (model.currentViewType == AnalyticsViewType.year) {
-                text = DateFormat.MMM()
-                    .format(DateTime(0, value.toInt()))
-                    .substring(0, 1);
-              }
-              return SideTitleWidget(
-                axisSide: meta.axisSide,
-                space: 10,
-                child: Text(
-                  text,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-              );
-            },
-          ),
+  // Helper method to build pie chart sections (no changes needed)
+  List<PieChartSectionData> _buildPieChartSections(
+    HomeModel model,
+    double totalGrams,
+  ) {
+    if (totalGrams == 0) return [];
+
+    final double proteinPercentage = (model.totalProtein / totalGrams) * 100;
+    final double carbsPercentage = (model.totalCarbs / totalGrams) * 100;
+    final double fatPercentage = (model.totalFat / totalGrams) * 100;
+
+    return [
+      PieChartSectionData(
+        value: model.totalProtein,
+        title: '${proteinPercentage.toStringAsFixed(0)}%',
+        color: Colors.blue.shade400,
+        radius: 50,
+        titleStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.withOpacity(0.2), width: 1),
-          left: BorderSide(color: Colors.grey.withOpacity(0.2), width: 1),
+      PieChartSectionData(
+        value: model.totalCarbs,
+        title: '${carbsPercentage.toStringAsFixed(0)}%',
+        color: Colors.orange.shade400,
+        radius: 50,
+        titleStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
-      minX: model.chartData.isEmpty ? 0 : model.chartData.first.x,
-      maxX: model.chartData.isEmpty ? 0 : model.chartData.last.x,
-      minY: model.chartData.isEmpty
-          ? 0
-          : (model.chartData.map((e) => e.y).reduce(min) - 20).clamp(
-              0,
-              double.infinity,
-            ),
-      maxY: model.chartData.isEmpty
-          ? 100
-          : model.chartData.map((e) => e.y).reduce(max) + 20,
-      lineBarsData: [
-        LineChartBarData(
-          spots: model.chartData,
-          isCurved: true,
-          curveSmoothness: 0.35,
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          barWidth: 3,
-          isStrokeCapRound: true,
-          dotData: FlDotData(
-            show: true,
-            getDotPainter: (spot, percent, barData, index) =>
-                FlDotCirclePainter(
-                  radius: 3,
-                  color: Theme.of(context).primaryColor,
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                ),
-          ),
-          belowBarData: BarAreaData(
-            show: true,
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).primaryColor.withOpacity(0.3),
-                Theme.of(context).primaryColor.withOpacity(0.0),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
+      PieChartSectionData(
+        value: model.totalFat,
+        title: '${fatPercentage.toStringAsFixed(0)}%',
+        color: Colors.red.shade400,
+        radius: 50,
+        titleStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
+      ),
+    ];
+  }
+
+  // Helper widget for the pie chart legend (no changes needed)
+  Widget _buildLegendItem({required Color color, required String text}) {
+    return Row(
+      children: [
+        Container(width: 16, height: 16, color: color),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, overflow: TextOverflow.ellipsis)),
       ],
     );
   }
 
-  // Widget for the Calendar Card
+  // Widget for the Calendar Card (no changes needed)
   Widget _buildCalendarCard(BuildContext context, HomeModel model) {
     return _buildSectionCard(
       context: context,
@@ -329,7 +273,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // Widget for the Daily Tasks Card
+  // Widget for the Daily Tasks Card (no changes needed)
   Widget _buildTasksCard(BuildContext context, HomeModel model) {
     return _buildSectionCard(
       context: context,
@@ -352,7 +296,7 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  // Helper widget for card styling.
+  // Helper widget for card styling (no changes needed)
   Widget _buildSectionCard({
     required BuildContext context,
     required String title,
