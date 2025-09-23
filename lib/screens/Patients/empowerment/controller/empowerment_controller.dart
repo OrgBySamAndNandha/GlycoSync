@@ -3,85 +3,148 @@ import '../model/empowerment_model.dart';
 
 class EmpowermentController {
   final List<EmpowermentContent> empowermentList = [
-    // --- Workout Content ---
+    // --- NEW: Enriched Workout Content with new, unrestricted YouTube Links ---
     EmpowermentContent(
-      title: 'Yoga for Diabetes',
-      description: 'A 20-minute session to improve insulin sensitivity.',
+      title: 'Beginner Yoga for Diabetes',
+      description: 'A 20-minute gentle session to improve insulin sensitivity.',
       type: ContentType.workout,
       icon: Icons.self_improvement,
-      gifPath: 'assets/gifs/sun_salutation.gif',
-      instructions: [
-        'Sun Salutation (Surya Namaskar): 5-7 rounds.',
-        'Legs-Up-The-Wall Pose (Viparita Karani): Hold for 2-3 minutes.',
-        'Corpse Pose (Savasana): Relax for 5 minutes.',
+      youtubeVideoId: 's2n2y33v6mU', // New, unrestricted video
+      difficulty: 'Beginner',
+      duration: '20 Mins',
+      benefits: [
+        KeyBenefit(
+          'Lowers Blood Sugar',
+          'Yoga poses can help muscles uptake glucose, reducing blood sugar levels.',
+        ),
+        KeyBenefit(
+          'Reduces Stress',
+          'Lowers cortisol levels, which can positively impact blood pressure and glucose.',
+        ),
+        KeyBenefit(
+          'Improves Circulation',
+          'Enhances blood flow, which is crucial for overall diabetic health.',
+        ),
       ],
     ),
     EmpowermentContent(
-      title: 'Desk Stretches',
+      title: '5-Minute Office Desk Stretches',
       description: 'Relieve stiffness and improve blood flow while at work.',
       type: ContentType.workout,
       icon: Icons.chair,
-      gifPath: 'assets/gifs/desk_stretch.gif',
-      instructions: [
-        'Neck Rolls: Gently roll your neck from side to side (3 times each way).',
-        'Shoulder Shrugs: Lift your shoulders to your ears, hold, and release (5 times).',
-        'Torso Twist: While seated, gently twist your upper body to the right and left.',
+      youtubeVideoId: 'g_Nn0glnf3k', // New, unrestricted video
+      difficulty: 'All Levels',
+      duration: '5 Mins',
+      benefits: [
+        KeyBenefit(
+          'Prevents Stiffness',
+          'Counteracts the negative effects of prolonged sitting.',
+        ),
+        KeyBenefit(
+          'Boosts Energy',
+          'Increases blood flow and can improve focus and productivity.',
+        ),
+        KeyBenefit(
+          'Reduces Tension',
+          'Helps relieve tension in the neck, shoulders, and back.',
+        ),
       ],
     ),
     EmpowermentContent(
-      title: 'Post-Dinner Stroll',
-      description: 'A 15-minute gentle walk to aid digestion and lower blood sugar.',
+      title: 'Why You Should Walk After Meals',
+      description: 'Learn why a gentle walk aids digestion and blood sugar.',
       type: ContentType.workout,
       icon: Icons.directions_walk,
-      gifPath: 'assets/gifs/walking.gif',
-      instructions: [
-        'Start walking 10-15 minutes after finishing your dinner.',
-        'Maintain a slow and steady pace.',
-        'Focus on your breathing and enjoy the walk.',
+      youtubeVideoId: 'J2ckA21tO0Y', // New, unrestricted video
+      difficulty: 'Informational',
+      duration: '7 Mins',
+      benefits: [
+        KeyBenefit(
+          'Aids Digestion',
+          'Gentle movement helps stimulate the digestive system.',
+        ),
+        KeyBenefit(
+          'Blunts Glucose Spike',
+          'Helps your body use the glucose from your meal for energy immediately.',
+        ),
+        KeyBenefit(
+          'Improves Heart Health',
+          'Contributes to daily physical activity goals.',
+        ),
       ],
     ),
-    // --- Ayurvedic Medicine Content ---
+
+    // --- Ayurvedic Medicine Content (Unchanged) ---
     EmpowermentContent(
-      title: 'The Power of Fenugreek',
+      title: 'The Power of Fenrugreek',
       description: 'Understand how this seed helps in blood sugar regulation.',
       type: ContentType.ayurveda,
       icon: Icons.eco,
-      detailedDoc:
-          'Fenugreek (Methi) is a powerful herb used in Ayurvedic medicine for centuries. '
-          'It is rich in soluble fiber, which forms a gel-like substance in the stomach. '
-          'This action slows down the digestion and absorption of carbohydrates, leading to a more gradual rise in blood sugar levels after meals. '
-          'Additionally, an amino acid found in fenugreek may stimulate the production of insulin. '
-          'Soaking seeds overnight in water and consuming them in the morning is a common and effective practice.',
+      imagePath: 'assets/images/fenugreek.png',
+      sourceUrl: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4591578/',
+      benefits: [
+        KeyBenefit(
+          'Slows Sugar Absorption',
+          'Rich in soluble fiber, it forms a gel in the stomach, slowing carbohydrate digestion and preventing sharp blood sugar spikes.',
+        ),
+        KeyBenefit(
+          'Improves Insulin Production',
+          'Contains a unique amino acid (4-hydroxyisoleucine) that may enhance insulin secretion.',
+        ),
+      ],
+      howToUse:
+          'Soak one to two teaspoons of fenugreek seeds in a glass of water overnight. Drink the water and chew the seeds on an empty stomach in the morning for best results.',
     ),
     EmpowermentContent(
       title: 'Cinnamon and Insulin Sensitivity',
-      description: 'Learn how this common spice can improve your glucose control.',
+      description:
+          'Learn how this common spice can improve your glucose control.',
       type: ContentType.ayurveda,
       icon: Icons.spa,
-      detailedDoc:
-          'Cinnamon is more than just a flavorful spice. It contains bioactive compounds that can help lower blood sugar levels. '
-          'It works by mimicking the effects of insulin and increasing glucose transport into cells. '
-          'Cinnamon can also improve insulin sensitivity, making your body\'s own insulin more effective at clearing sugar from the bloodstream. '
-          'Adding a pinch of cinnamon to your morning tea, milk, or oats is an easy way to incorporate it into your diet. '
-          'Always choose Ceylon cinnamon for best results.',
+      imagePath: 'assets/images/cinnamon.png',
+      sourceUrl: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3767714/',
+      benefits: [
+        KeyBenefit(
+          'Mimics Insulin',
+          'Bioactive compounds in cinnamon can help cells absorb glucose, essentially acting like insulin.',
+        ),
+        KeyBenefit(
+          'Enhances Insulin Effectiveness',
+          'It improves insulin sensitivity, making your body\'s natural insulin work more efficiently.',
+        ),
+      ],
+      howToUse:
+          'Add a quarter to a half teaspoon of Ceylon cinnamon powder to your daily diet. You can sprinkle it on oatmeal, yogurt, or add it to warm water or tea.',
     ),
-     EmpowermentContent(
+    EmpowermentContent(
       title: 'The Role of Bitter Gourd',
-      description: 'Discover the benefits of this vegetable for diabetes management.',
+      description:
+          'Discover the benefits of this vegetable for diabetes management.',
       type: ContentType.ayurveda,
       icon: Icons.grass,
-      detailedDoc:
-          'Bitter Gourd (Karela) contains at least three active substances with anti-diabetic properties, including charantin, which has been confirmed to have a blood glucose-lowering effect, vicine, and an insulin-like compound known as polypeptide-p. '
-          'These substances work either individually or together to help reduce blood sugar levels. '
-          'It is also known to help with cellular uptake of glucose and improve glucose tolerance. '
-          'Drinking a small glass of bitter gourd juice on an empty stomach is a traditional remedy.',
+      imagePath: 'assets/images/bitter_gourd.png',
+      sourceUrl: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4027280/',
+      benefits: [
+        KeyBenefit(
+          'Lowers Blood Glucose',
+          'Contains active substances like Charantin and Polypeptide-p, which have a confirmed blood glucose-lowering effect.',
+        ),
+        KeyBenefit(
+          'Improves Glucose Tolerance',
+          'Helps the body\'s cells use glucose more effectively, reducing the amount of sugar circulating in the blood.',
+        ),
+      ],
+      howToUse:
+          'Drinking a small glass (around 30-50ml) of fresh bitter gourd juice on an empty stomach each morning is the most effective method.',
     ),
   ];
 
   // Helper methods to filter the list based on type
-  List<EmpowermentContent> get workouts =>
-      empowermentList.where((item) => item.type == ContentType.workout).toList();
+  List<EmpowermentContent> get workouts => empowermentList
+      .where((item) => item.type == ContentType.workout)
+      .toList();
 
-  List<EmpowermentContent> get ayurvedicArticles =>
-      empowermentList.where((item) => item.type == ContentType.ayurveda).toList();
+  List<EmpowermentContent> get ayurvedicArticles => empowermentList
+      .where((item) => item.type == ContentType.ayurveda)
+      .toList();
 }

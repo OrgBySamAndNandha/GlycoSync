@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../controller/empowerment_controller.dart';
 import '../model/empowerment_model.dart';
 import 'empowerment_detail_view.dart';
+// --- NEW: Import the video player view ---
+import 'empowerment_video_view.dart';
 
 class EmpowermentView extends StatefulWidget {
   const EmpowermentView({super.key});
@@ -39,17 +41,11 @@ class _EmpowermentViewState extends State<EmpowermentView>
           controller: _tabController,
           indicatorColor: Colors.white,
           indicatorWeight: 3,
-          // --- CHANGE: Explicitly set the label colors to white ---
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white.withOpacity(0.7),
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.normal,
-            fontSize: 16,
-          ),
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          unselectedLabelStyle:
+              const TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
           tabs: const [
             Tab(icon: Icon(Icons.fitness_center), text: 'Workouts'),
             Tab(icon: Icon(Icons.spa_outlined), text: 'Ayurveda'),
@@ -67,9 +63,7 @@ class _EmpowermentViewState extends State<EmpowermentView>
   }
 
   Widget _buildContentList(
-    List<EmpowermentContent> contentList,
-    Color themeColor,
-  ) {
+      List<EmpowermentContent> contentList, Color themeColor) {
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: contentList.length,
@@ -79,23 +73,18 @@ class _EmpowermentViewState extends State<EmpowermentView>
           elevation: 3,
           shadowColor: Colors.black.withOpacity(0.1),
           margin: const EdgeInsets.symmetric(vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             leading: CircleAvatar(
               radius: 25,
               backgroundColor: themeColor.withOpacity(0.1),
               child: Icon(item.icon, color: themeColor),
             ),
-            title: Text(
-              item.title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            title: Text(item.title,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4.0),
               child: Text(
@@ -104,18 +93,29 @@ class _EmpowermentViewState extends State<EmpowermentView>
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            trailing: const Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey,
-            ),
+            trailing: const Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.grey),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EmpowermentDetailView(content: item),
-                ),
-              );
+              // --- CHANGE: Navigate based on content type ---
+              if (item.type == ContentType.workout) {
+                // Navigate to the new video player view
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        EmpowermentVideoView(content: item),
+                  ),
+                );
+              } else {
+                // Navigate to the existing detail view for articles
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        EmpowermentDetailView(content: item),
+                  ),
+                );
+              }
             },
           ),
         );
@@ -123,3 +123,4 @@ class _EmpowermentViewState extends State<EmpowermentView>
     );
   }
 }
+

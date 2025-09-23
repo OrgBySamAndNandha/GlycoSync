@@ -3,22 +3,47 @@ import 'package:flutter/material.dart';
 // Enum to differentiate between content types
 enum ContentType { workout, ayurveda }
 
+// A class to structure the key benefits for both workouts and articles
+class KeyBenefit {
+  final String title;
+  final String description;
+
+  KeyBenefit(this.title, this.description);
+}
+
+// The main model for all content within the Empowerment Hub
 class EmpowermentContent {
   final String title;
   final String description;
   final ContentType type;
   final IconData icon;
-  final String? gifPath; // For workouts
-  final List<String> instructions; // For workouts
-  final String? detailedDoc; // For Ayurveda articles
 
+  // Properties specifically for YouTube workout videos
+  final String? youtubeVideoId;
+  final String? difficulty;
+  final String? duration;
+
+  // Properties specifically for rich Ayurveda articles
+  final String? imagePath;
+  final String? howToUse;
+  final String? sourceUrl;
+
+  // This property is used by both workouts and articles
+  final List<KeyBenefit>? benefits;
+
+  // --- THIS IS THE FIX ---
+  // The constructor is updated to include all new properties.
   EmpowermentContent({
     required this.title,
     required this.description,
     required this.type,
     required this.icon,
-    this.gifPath,
-    this.instructions = const [],
-    this.detailedDoc,
+    this.youtubeVideoId,
+    this.difficulty,
+    this.duration,
+    this.imagePath,
+    this.howToUse,
+    this.sourceUrl,
+    this.benefits,
   });
 }
