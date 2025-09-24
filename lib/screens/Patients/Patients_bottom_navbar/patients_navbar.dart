@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:glycosync/screens/Patients/home/view/home_view.dart';
-// Import the new placeholder screens
 import 'package:glycosync/screens/Patients/routine/view/routine_view.dart';
 import 'package:glycosync/screens/Patients/profile/view/profile_view.dart';
 
@@ -12,17 +11,30 @@ class PatientsNavBar extends StatefulWidget {
 }
 
 class _PatientsNavBarState extends State<PatientsNavBar> {
-  // Set the initial index to 1 so the app opens on the Home screen
   int _selectedIndex = 1;
 
-  // The list of screens that correspond to the nav bar items
-  static const List<Widget> _widgetOptions = <Widget>[
-    RoutineView(),
-    HomeView(),
-    ProfileView(),
-  ];
+  // --- NEW: A GlobalKey to access the HomeView's state ---
+  final GlobalKey<HomeViewState> _homeViewKey = GlobalKey<HomeViewState>();
+
+  // --- MODIFIED: The list of widgets is now late-initialized ---
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      const RoutineView(),
+      // Pass the key to the HomeView instance
+      HomeView(key: _homeViewKey),
+      const ProfileView(),
+    ];
+  }
 
   void _onItemTapped(int index) {
+    // --- NEW: Check if the Home tab is tapped and refresh its data ---
+    if (index == 1) {
+      _homeViewKey.currentState?.refreshData();
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -33,7 +45,6 @@ class _PatientsNavBarState extends State<PatientsNavBar> {
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
       bottomNavigationBar: BottomNavigationBar(
-        // Updated the items to the new three-tab structure
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.list_alt_outlined),

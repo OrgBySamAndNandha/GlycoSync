@@ -3,6 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../controller/profile_controller.dart';
 import '../model/profile_model.dart';
+// --- NEW: Import the submission view ---
+import 'lab_report_submission_view.dart';
+
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -28,7 +31,6 @@ class _ProfileViewState extends State<ProfileView> {
     super.dispose();
   }
 
-  // Function to show the date picker and fetch new data
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -50,10 +52,9 @@ class _ProfileViewState extends State<ProfileView> {
       appBar: AppBar(
         title: Text(
           "Profile",
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -70,6 +71,9 @@ class _ProfileViewState extends State<ProfileView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildProfileHeader(context, model),
+                const SizedBox(height: 24),
+                // --- NEW: Add the prompt card here ---
+                _buildSubmitReportPrompt(context, model.lastReportDate),
                 const SizedBox(height: 24),
                 _buildHealthSnapshot(context, model),
                 const SizedBox(height: 24),
@@ -90,10 +94,7 @@ class _ProfileViewState extends State<ProfileView> {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 30,
-              child: Icon(Icons.person, size: 30),
-            ),
+            const CircleAvatar(radius: 30, child: Icon(Icons.person, size: 30)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -101,13 +102,14 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   Text(
                     model.patientName,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  Text(model.patientEmail,
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    model.patientEmail,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
@@ -120,6 +122,49 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
+  
+  // --- NEW: Widget to display the submission prompt ---
+  Widget _buildSubmitReportPrompt(BuildContext context, DateTime? lastReportDate) {
+    String title;
+    String subtitle;
+
+    if (lastReportDate == null) {
+      title = 'Submit Your First Lab Report';
+      subtitle = 'Start tracking your health progress.';
+    } else if (DateTime.now().difference(lastReportDate).inDays > 30) {
+      title = 'New Lab Report Due';
+      subtitle = 'Your last report was over a month ago.';
+    } else {
+      // If the report is recent, don't show the prompt
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      elevation: 2,
+      color: Colors.blue.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.blue.shade200),
+      ),
+      child: ListTile(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: () async {
+          // Navigate and wait for a result
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (context) => const LabReportSubmissionView()),
+          );
+          // If the result is true (submission was successful), refresh the profile data
+          if (result == true) {
+            _controller.fetchProfileData();
+          }
+        },
+      ),
+    );
+  }
+
 
   Widget _buildHealthSnapshot(BuildContext context, ProfileModel model) {
     return Card(
@@ -131,19 +176,39 @@ class _ProfileViewState extends State<ProfileView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Health Snapshot',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              'Latest Lab Results',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            const Divider(height: 20),
+            // Use Wrap for better responsiveness
+            Wrap(
+              alignment: WrapAlignment.spaceAround,
+              spacing: 12.0, // Horizontal space
+              runSpacing: 16.0, // Vertical space
               children: [
-                _buildStatItem('Diabetes Type', model.diabetesType),
-                _buildStatItem('Height', '${model.height} cm'),
-                _buildStatItem('Weight', '${model.weight} kg'),
+                _buildStatItem(
+                  'HbA1c',
+                  '${model.labReportData.hba1c} %',
+                  _getStatColor('hba1c', model.labReportData.hba1c),
+                ),
+                _buildStatItem(
+                  'Avg. Blood Glucose',
+                  '${model.labReportData.avgBloodGlucose} mg/dL',
+                  _getStatColor(
+                    'avgGlucose',
+                    model.labReportData.avgBloodGlucose,
+                  ),
+                ),
+                _buildStatItem(
+                  'Fasting Glucose',
+                  '${model.labReportData.fastingBloodSugar} mg/dL',
+                  _getStatColor(
+                    'fasting',
+                    model.labReportData.fastingBloodSugar,
+                  ),
+                ),
               ],
             ),
           ],
@@ -152,29 +217,47 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
+  Color _getStatColor(String type, String value) {
+    final double? val = double.tryParse(value);
+    if (val == null) return Colors.black;
+
+    switch (type) {
+      case 'hba1c':
+        if (val > 8.0) return Colors.red.shade700; // Poor control
+        if (val > 6.5) return Colors.orange.shade700; // Fair control
+        return Colors.green.shade700; // Good control
+      case 'avgGlucose':
+      case 'fasting':
+        if (val > 180) return Colors.red.shade700; // Poor control
+        if (val > 150) return Colors.orange.shade700; // Fair control
+        return Colors.green.shade700; // Good control
+      default:
+        return Colors.black;
+    }
+  }
+
+  Widget _buildStatItem(String label, String value, Color valueColor) {
     return Column(
       children: [
-        Text(value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: valueColor,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
 
   Widget _buildWeeklyReport(BuildContext context, ProfileModel model) {
-    // Calculate weekly totals from the model
-    final weeklyTotalProtein =
-        model.weeklyReportData.fold(0.0, (sum, day) => sum + day.totalProtein);
-    final weeklyTotalCarbs =
-        model.weeklyReportData.fold(0.0, (sum, day) => sum + day.totalCarbs);
-    final weeklyTotalFat =
-        model.weeklyReportData.fold(0.0, (sum, day) => sum + day.totalFat);
-    final weeklyAvgGlucose = model.weeklyReportData
-            .fold(0.0, (sum, day) => sum + day.netGlucoseImpact) /
-        (model.weeklyReportData.isEmpty ? 1 : model.weeklyReportData.length);
-
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -187,11 +270,10 @@ class _ProfileViewState extends State<ProfileView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Weekly Report',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  'Weekly Activity Report',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.calendar_today, size: 16),
@@ -208,10 +290,6 @@ class _ProfileViewState extends State<ProfileView> {
             else
               Column(
                 children: [
-                  _buildStatItem(
-                      'Avg. Glucose Impact',
-                      '${weeklyAvgGlucose.toStringAsFixed(1)} mg/dL'),
-                  const Divider(height: 24),
                   SizedBox(
                     height: 200,
                     child: BarChart(_buildBarChartData(model.weeklyReportData)),
@@ -219,7 +297,7 @@ class _ProfileViewState extends State<ProfileView> {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.download),
-                    label: const Text('Download Report'),
+                    label: const Text('Download Full Report'),
                     onPressed: () {
                       _controller.generateAndDownloadReport();
                     },
@@ -235,12 +313,14 @@ class _ProfileViewState extends State<ProfileView> {
   BarChartData _buildBarChartData(List<DailyReportData> data) {
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
-      maxY: 50, // Adjust based on expected data range
+      maxY: 50,
       minY: -20,
       barTouchData: BarTouchData(enabled: false),
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
@@ -259,10 +339,8 @@ class _ProfileViewState extends State<ProfileView> {
         show: true,
         drawVerticalLine: false,
         horizontalInterval: 10,
-        getDrawingHorizontalLine: (value) => FlLine(
-          color: Colors.grey.withOpacity(0.2),
-          strokeWidth: 1,
-        ),
+        getDrawingHorizontalLine: (value) =>
+            FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
       ),
       borderData: FlBorderData(show: false),
       barGroups: data
@@ -278,8 +356,10 @@ class _ProfileViewState extends State<ProfileView> {
                       ? Colors.orange
                       : Colors.blue,
                   width: 16,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                )
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(4),
+                  ),
+                ),
               ],
             ),
           )

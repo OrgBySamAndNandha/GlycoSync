@@ -7,13 +7,28 @@ class DailyReportData {
   final double totalProtein;
   final double totalCarbs;
   final double totalFat;
+  final List<String> completedLevels;
 
-  DailyReportData({
+  const DailyReportData({
     required this.date,
     this.netGlucoseImpact = 0.0,
     this.totalProtein = 0.0,
     this.totalCarbs = 0.0,
     this.totalFat = 0.0,
+    this.completedLevels = const [],
+  });
+}
+
+// Class to hold lab report data
+class LabReportData {
+  final String hba1c;
+  final String avgBloodGlucose;
+  final String fastingBloodSugar;
+
+  const LabReportData({
+    this.hba1c = '-',
+    this.avgBloodGlucose = '-',
+    this.fastingBloodSugar = '-',
   });
 }
 
@@ -26,8 +41,11 @@ class ProfileModel {
   final String weight;
   final bool isLoading;
   final List<DailyReportData> weeklyReportData;
+  final LabReportData labReportData;
+  // --- NEW: To track the date of the last report ---
+  final DateTime? lastReportDate;
 
-  ProfileModel({
+  const ProfileModel({
     this.patientName = 'Loading...',
     this.patientEmail = 'Loading...',
     this.diabetesType = '-',
@@ -35,6 +53,9 @@ class ProfileModel {
     this.weight = '-',
     this.isLoading = true,
     this.weeklyReportData = const [],
+    this.labReportData = const LabReportData(),
+    // --- NEW: Initialize in constructor ---
+    this.lastReportDate,
   });
 
   // Helper method for immutable updates.
@@ -46,6 +67,9 @@ class ProfileModel {
     String? weight,
     bool? isLoading,
     List<DailyReportData>? weeklyReportData,
+    LabReportData? labReportData,
+    // --- NEW: Add to copyWith ---
+    DateTime? lastReportDate,
   }) {
     return ProfileModel(
       patientName: patientName ?? this.patientName,
@@ -55,6 +79,9 @@ class ProfileModel {
       weight: weight ?? this.weight,
       isLoading: isLoading ?? this.isLoading,
       weeklyReportData: weeklyReportData ?? this.weeklyReportData,
+      labReportData: labReportData ?? this.labReportData,
+      // --- NEW: Update lastReportDate ---
+      lastReportDate: lastReportDate ?? this.lastReportDate,
     );
   }
 }

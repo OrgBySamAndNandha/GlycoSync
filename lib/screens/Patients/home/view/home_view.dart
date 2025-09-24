@@ -9,15 +9,17 @@ import '../model/home_model.dart';
 import 'package:glycosync/screens/Patients/empowerment/view/empowerment_view.dart';
 
 class HomeView extends StatefulWidget {
+  // MODIFIED: Added a key to the constructor
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeView> createState() => HomeViewState();
 }
 
 enum AnalyticsCategory { glucose, nutrition }
 
-class _HomeViewState extends State<HomeView> {
+// MODIFIED: Renamed state class to be public
+class HomeViewState extends State<HomeView> {
   late final HomeController _controller;
   // State for the segmented button
   AnalyticsCategory _selectedCategory = AnalyticsCategory.glucose;
@@ -26,6 +28,12 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _controller = HomeController();
+    _controller.loadHomeData();
+  }
+
+  // --- NEW: Public method to refresh the data ---
+  // This method will be called by the navigation bar.
+  void refreshData() {
     _controller.loadHomeData();
   }
 
@@ -39,17 +47,14 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // New title for the app bar
         title: const Text(
           'GlycoSync',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        // --- CHANGE: Added centerTitle property ---
         centerTitle: true,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.black,
         elevation: 0,
-        // New icon button for the empowerment page
         leading: IconButton(
           icon: const Icon(Icons.self_improvement_outlined),
           onPressed: () {
@@ -83,7 +88,6 @@ class _HomeViewState extends State<HomeView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // The welcome text is now removed from here.
                   _buildAnalyticsCard(context, model),
                   const SizedBox(height: 24),
                   _buildCalendarCard(context, model),
@@ -159,10 +163,8 @@ class _HomeViewState extends State<HomeView> {
   }
 
   PieChartData _buildPieChartData(BuildContext context, HomeModel model) {
-    // Calculate total for percentage calculation
     final totalNutrients =
         model.totalProtein + model.totalCarbs + model.totalFat;
-    // Avoid division by zero
     if (totalNutrients == 0) return PieChartData(sections: []);
 
     return PieChartData(
