@@ -6,7 +6,6 @@ import '../model/profile_model.dart';
 // --- NEW: Import the submission view ---
 import 'lab_report_submission_view.dart';
 
-
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
@@ -49,15 +48,19 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5EFE6), // Your cream background
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Profile",
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 22,
+          ),
         ),
+        backgroundColor: const Color(0xFF6D94C5), // Your medium blue
+        foregroundColor: Colors.white,
         elevation: 0,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: ValueListenableBuilder<ProfileModel>(
         valueListenable: _controller.modelNotifier,
@@ -90,11 +93,16 @@ class _ProfileViewState extends State<ProfileView> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            const CircleAvatar(radius: 30, child: Icon(Icons.person, size: 30)),
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: const Color(0xFF6D94C5), // Your medium blue
+              child: const Icon(Icons.person, size: 30, color: Colors.white),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -102,13 +110,18 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   Text(
                     model.patientName,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: const TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D94C5), // Your medium blue
                     ),
                   ),
                   Text(
                     model.patientEmail,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6D94C5), // Your medium blue
+                    ),
                   ),
                 ],
               ),
@@ -122,9 +135,12 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
-  
+
   // --- NEW: Widget to display the submission prompt ---
-  Widget _buildSubmitReportPrompt(BuildContext context, DateTime? lastReportDate) {
+  Widget _buildSubmitReportPrompt(
+    BuildContext context,
+    DateTime? lastReportDate,
+  ) {
     String title;
     String subtitle;
 
@@ -141,20 +157,39 @@ class _ProfileViewState extends State<ProfileView> {
 
     return Card(
       elevation: 2,
-      color: Colors.blue.shade50,
+      color: const Color(0xFFCBDCEB), // Your light blue
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.blue.shade200),
+        side: const BorderSide(
+          color: Color(0xFF6D94C5),
+        ), // Your medium blue border
       ),
       child: ListTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF6D94C5), // Your medium blue
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            color: Color(0xFF6D94C5), // Your medium blue
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Color(0xFF6D94C5), // Your medium blue
+        ),
         onTap: () async {
           // Navigate and wait for a result
           final result = await Navigator.push<bool>(
             context,
-            MaterialPageRoute(builder: (context) => const LabReportSubmissionView()),
+            MaterialPageRoute(
+              builder: (context) => const LabReportSubmissionView(),
+            ),
           );
           // If the result is true (submission was successful), refresh the profile data
           if (result == true) {
@@ -165,11 +200,11 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-
   Widget _buildHealthSnapshot(BuildContext context, ProfileModel model) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -177,11 +212,16 @@ class _ProfileViewState extends State<ProfileView> {
           children: [
             Text(
               'Latest Lab Results',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6D94C5), // Your medium blue
+              ),
             ),
-            const Divider(height: 20),
+            const Divider(
+              height: 20,
+              color: Color(0xFFCBDCEB), // Your light blue
+            ),
             // Use Wrap for better responsiveness
             Wrap(
               alignment: WrapAlignment.spaceAround,
@@ -250,7 +290,10 @@ class _ProfileViewState extends State<ProfileView> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF6D94C5), // Your medium blue
+          ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -261,6 +304,7 @@ class _ProfileViewState extends State<ProfileView> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -271,13 +315,24 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 Text(
                   'Weekly Activity Report',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D94C5), // Your medium blue
                   ),
                 ),
                 TextButton.icon(
-                  icon: const Icon(Icons.calendar_today, size: 16),
-                  label: Text(DateFormat.yMMMd().format(_selectedDate)),
+                  icon: const Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: Color(0xFF6D94C5), // Your medium blue
+                  ),
+                  label: Text(
+                    DateFormat.yMMMd().format(_selectedDate),
+                    style: const TextStyle(
+                      color: Color(0xFF6D94C5), // Your medium blue
+                    ),
+                  ),
                   onPressed: () => _selectDate(context),
                 ),
               ],
@@ -298,6 +353,19 @@ class _ProfileViewState extends State<ProfileView> {
                   ElevatedButton.icon(
                     icon: const Icon(Icons.download),
                     label: const Text('Download Full Report'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(
+                        0xFF6D94C5,
+                      ), // Your medium blue
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 24,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: () {
                       _controller.generateAndDownloadReport();
                     },
@@ -353,8 +421,12 @@ class _ProfileViewState extends State<ProfileView> {
                 BarChartRodData(
                   toY: entry.value.netGlucoseImpact,
                   color: entry.value.netGlucoseImpact >= 0
-                      ? Colors.orange
-                      : Colors.blue,
+                      ? const Color(
+                          0xFFE8DFCA,
+                        ) // Your beige for positive impact
+                      : const Color(
+                          0xFF6D94C5,
+                        ), // Your medium blue for negative impact
                   width: 16,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(4),

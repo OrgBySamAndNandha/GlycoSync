@@ -18,8 +18,9 @@ class EmpowermentContent {
   final ContentType type;
   final IconData icon;
 
-  // Properties specifically for YouTube workout videos
+  // Properties specifically for workout videos
   final String? youtubeVideoId;
+  final String? videoPath; // Local video asset path
   final String? difficulty;
   final String? duration;
 
@@ -39,6 +40,7 @@ class EmpowermentContent {
     required this.type,
     required this.icon,
     this.youtubeVideoId,
+    this.videoPath,
     this.difficulty,
     this.duration,
     this.imagePath,

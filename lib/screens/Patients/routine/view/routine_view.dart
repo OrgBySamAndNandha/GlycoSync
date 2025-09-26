@@ -29,14 +29,18 @@ class _RoutineViewState extends State<RoutineView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5EFE6), // Your cream background
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Today's Routine",
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 22,
+          ),
         ),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: const Color(0xFF6D94C5), // Your medium blue
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: ValueListenableBuilder<RoutineModel>(
@@ -103,6 +107,7 @@ class _RoutineViewState extends State<RoutineView> {
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -110,9 +115,11 @@ class _RoutineViewState extends State<RoutineView> {
           children: [
             Text(
               'Nutrition Gained Today',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6D94C5), // Your medium blue
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -141,10 +148,20 @@ class _RoutineViewState extends State<RoutineView> {
       children: [
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Color(0xFF6D94C5), // Your medium blue
+          ),
         ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF6D94C5), // Your medium blue for consistency
+          ),
+        ),
       ],
     );
   }
@@ -161,6 +178,7 @@ class _RoutineViewState extends State<RoutineView> {
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: isLocked
@@ -191,10 +209,12 @@ class _RoutineViewState extends State<RoutineView> {
                           ? Icons.check_circle
                           : (isLocked ? Icons.lock : level.icon),
                       color: isCompleted
-                          ? Colors.green
+                          ? const Color(
+                              0xFF6D94C5,
+                            ) // Your medium blue for completed
                           : (isLocked
                                 ? Colors.grey
-                                : Theme.of(context).primaryColor),
+                                : const Color(0xFF6D94C5)), // Your medium blue
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -204,12 +224,18 @@ class _RoutineViewState extends State<RoutineView> {
                         children: [
                           Text(
                             level.title,
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF6D94C5), // Your medium blue
+                            ),
                           ),
                           Text(
                             level.timeRange,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF6D94C5), // Your medium blue
+                            ),
                           ),
                         ],
                       ),
@@ -228,8 +254,8 @@ class _RoutineViewState extends State<RoutineView> {
                     percent: level.completionPercentage,
                     lineHeight: 8.0,
                     barRadius: const Radius.circular(4),
-                    backgroundColor: Colors.grey.shade300,
-                    progressColor: Colors.green,
+                    backgroundColor: const Color(0xFFCBDCEB), // Your light blue
+                    progressColor: const Color(0xFF6D94C5), // Your medium blue
                   ),
               ],
             ),

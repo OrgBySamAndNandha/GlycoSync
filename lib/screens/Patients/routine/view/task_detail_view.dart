@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import '../model/routine_model.dart';
 
 class TaskDetailView extends StatelessWidget {
@@ -23,25 +24,49 @@ class TaskDetailView extends StatelessWidget {
             // Title
             Text(
               task.title,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6D94C5), // Your medium blue
+              ),
             ),
             const SizedBox(height: 8),
             // Description
             Text(
               task.description,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF6D94C5), // Your medium blue
+              ),
             ),
             const Divider(height: 32),
 
-            // GIF if available
+            // Animation if available
             if (task.gifPath != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(task.gifPath!),
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(0xFFF5EFE6), // Your cream background
+                  ),
+                  child: Lottie.asset(
+                    task.gifPath!,
+                    fit: BoxFit.contain,
+                    repeat: true,
+                    animate: true,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(
+                          Icons.animation,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
 
@@ -59,7 +84,13 @@ class TaskDetailView extends StatelessWidget {
 
             // Rationale
             _buildSectionTitle(context, 'Why This Helps'),
-            Text(task.rationale, style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              task.rationale,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF6D94C5), // Your medium blue
+              ),
+            ),
           ],
         ),
       ),
@@ -72,9 +103,11 @@ class TaskDetailView extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF6D94C5), // Your medium blue
+        ),
       ),
     );
   }
@@ -86,8 +119,21 @@ class TaskDetailView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(text)),
+          const Text(
+            '• ',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6D94C5), // Your medium blue
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFF6D94C5), // Your medium blue
+              ),
+            ),
+          ),
         ],
       ),
     );

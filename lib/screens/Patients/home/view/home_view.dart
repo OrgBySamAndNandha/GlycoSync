@@ -46,17 +46,29 @@ class HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(
+        0xFFF5EFE6,
+      ), // Your very light cream background
       appBar: AppBar(
         title: const Text(
           'GlycoSync',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 22,
+          ),
         ),
         centerTitle: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: Colors.black,
+        backgroundColor: const Color(
+          0xFF6D94C5,
+        ), // Your medium blue - solid color
+        foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.self_improvement_outlined),
+          icon: const Icon(
+            Icons.self_improvement_outlined,
+            color: Colors.white,
+          ),
           onPressed: () {
             Navigator.push(
               context,
@@ -66,7 +78,7 @@ class HomeViewState extends State<HomeView> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -131,9 +143,15 @@ class HomeViewState extends State<HomeView> {
               });
             },
             style: SegmentedButton.styleFrom(
-              backgroundColor: Colors.grey.shade200,
-              selectedBackgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: const Color(
+                0xFFCBDCEB,
+              ), // Your light blue - more professional
+              selectedBackgroundColor: const Color(
+                0xFF6D94C5,
+              ), // Your medium blue
               selectedForegroundColor: Colors.white,
+              foregroundColor: const Color(0xFF6D94C5), // Your medium blue
+              side: BorderSide.none,
             ),
           ),
           const SizedBox(height: 24),
@@ -172,39 +190,39 @@ class HomeViewState extends State<HomeView> {
       centerSpaceRadius: 40,
       sections: [
         PieChartSectionData(
-          color: Colors.blue.shade400,
+          color: const Color(0xFF6D94C5), // Your medium blue for protein
           value: model.totalProtein,
           title:
               '${((model.totalProtein / totalNutrients) * 100).toStringAsFixed(0)}%\nProtein',
-          radius: 50,
+          radius: 55,
           titleStyle: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
         PieChartSectionData(
-          color: Colors.orange.shade400,
+          color: const Color(0xFFCBDCEB), // Your light blue for carbs
           value: model.totalCarbs,
           title:
               '${((model.totalCarbs / totalNutrients) * 100).toStringAsFixed(0)}%\nCarbs',
-          radius: 50,
+          radius: 55,
           titleStyle: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Color(0xFF6D94C5), // Darker text for light background
           ),
         ),
         PieChartSectionData(
-          color: Colors.red.shade400,
+          color: const Color(0xFFE8DFCA), // Your beige for fat
           value: model.totalFat,
           title:
               '${((model.totalFat / totalNutrients) * 100).toStringAsFixed(0)}%\nFat',
-          radius: 50,
+          radius: 55,
           titleStyle: const TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Color(0xFF6D94C5), // Darker text for light background
           ),
         ),
       ],
@@ -225,12 +243,12 @@ class HomeViewState extends State<HomeView> {
           _controller.onDateSelected(selectedDay);
         },
         calendarStyle: CalendarStyle(
-          todayDecoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.5),
+          todayDecoration: const BoxDecoration(
+            color: Color(0xFFCBDCEB), // Your light blue
             shape: BoxShape.circle,
           ),
-          selectedDecoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
+          selectedDecoration: const BoxDecoration(
+            color: Color(0xFF6D94C5), // Your medium blue
             shape: BoxShape.circle,
           ),
         ),
@@ -263,9 +281,36 @@ class HomeViewState extends State<HomeView> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: model.dailyTasks.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  leading: const Icon(Icons.check_circle, color: Colors.green),
-                  title: Text(model.dailyTasks[index]),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white, // White background for contrast
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFCBDCEB),
+                    ), // Your light blue border
+                  ),
+                  child: ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF6D94C5), // Your medium blue
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                    title: Text(
+                      model.dailyTasks[index],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF6D94C5), // Your medium blue text
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -278,30 +323,55 @@ class HomeViewState extends State<HomeView> {
     required IconData icon,
     required Widget child,
   }) {
-    return Card(
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFCBDCEB), // Your light blue - solid shadow
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Icon(icon, color: Theme.of(context).primaryColor),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(
+                      0xFF6D94C5,
+                    ), // Your medium blue - solid color
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: const TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D94C5), // Your medium blue text
                     ),
                   ),
                 ),
               ],
             ),
-            const Divider(height: 24, thickness: 1),
+            Container(
+              height: 1,
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              decoration: const BoxDecoration(
+                color: Color(0xFFCBDCEB), // Your light blue - solid color
+              ),
+            ),
             child,
           ],
         ),

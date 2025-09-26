@@ -187,7 +187,8 @@ class RoutineController {
                 'Legs-Up-The-Wall Pose (Viparita Karani): Hold for 2-3 minutes.',
                 'Corpse Pose (Savasana): Relax for 5 minutes.',
               ],
-              gifPath: 'assets/gifs/sun_salutation.gif',
+              gifPath:
+                  'assets/gifs/sun_salutation.json', // Placeholder animation
               rationale:
                   'Yoga improves circulation, stimulates abdominal organs (like the pancreas), and reduces cortisol (stress hormone) levels, all of which contribute to better glucose control.',
             ),
@@ -319,7 +320,7 @@ class RoutineController {
                 'Shoulder Shrugs: Lift your shoulders to your ears, hold, and release (5 times).',
                 'Torso Twist: While seated, gently twist your upper body to the right and left (hold for 15 seconds each side).',
               ],
-              gifPath: 'assets/gifs/desk_stretch.gif',
+              gifPath: 'assets/gifs/Desk_stretch.json', // Placeholder animation
               rationale:
                   'Prevents muscular stiffness and the metabolic slowdown associated with prolonged sitting.',
             ),
@@ -359,7 +360,7 @@ class RoutineController {
               title: 'Gentle Stroll',
               description: 'A 15-minute slow and steady walk after dinner.',
               glucoseImpact: -4.0, // CORRECTED: Post-meal walk is effective
-              gifPath: 'assets/gifs/walking.gif',
+              gifPath: 'assets/gifs/walking.json', // Placeholder animation
               rationale:
                   'Helps your body use the glucose from your dinner for energy, reducing the amount circulating in your blood.',
               instructions: [],

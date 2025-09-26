@@ -49,6 +49,7 @@ dependencies:
   intl: ^0.20.2
   table_calendar: ^3.2.0
   percent_indicator: ^4.2.5
+  video_player: ^2.8.1
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,8 @@ flutter:
     - assets/
     - assets/animations/
     - assets/images/
+    - assets/gifs/
+    - assets/videos/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

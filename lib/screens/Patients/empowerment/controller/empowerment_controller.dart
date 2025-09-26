@@ -3,13 +3,13 @@ import '../model/empowerment_model.dart';
 
 class EmpowermentController {
   final List<EmpowermentContent> empowermentList = [
-    // --- NEW: Enriched Workout Content with new, unrestricted YouTube Links ---
+    // --- Existing Workout Content ---
     EmpowermentContent(
       title: 'Beginner Yoga for Diabetes',
       description: 'A 20-minute gentle session to improve insulin sensitivity.',
       type: ContentType.workout,
       icon: Icons.self_improvement,
-      youtubeVideoId: 's2n2y33v6mU', // New, unrestricted video
+      videoPath: 'assets/videos/yoga1.mp4', // Local video asset
       difficulty: 'Beginner',
       duration: '20 Mins',
       benefits: [
@@ -32,7 +32,7 @@ class EmpowermentController {
       description: 'Relieve stiffness and improve blood flow while at work.',
       type: ContentType.workout,
       icon: Icons.chair,
-      youtubeVideoId: 'g_Nn0glnf3k', // New, unrestricted video
+      videoPath: 'assets/videos/yoga2.mp4', // Local video asset
       difficulty: 'All Levels',
       duration: '5 Mins',
       benefits: [
@@ -55,7 +55,7 @@ class EmpowermentController {
       description: 'Learn why a gentle walk aids digestion and blood sugar.',
       type: ContentType.workout,
       icon: Icons.directions_walk,
-      youtubeVideoId: 'J2ckA21tO0Y', // New, unrestricted video
+      videoPath: 'assets/videos/walk.mp4', // Local video asset
       difficulty: 'Informational',
       duration: '7 Mins',
       benefits: [
@@ -74,7 +74,57 @@ class EmpowermentController {
       ],
     ),
 
-    // --- Ayurvedic Medicine Content (Unchanged) ---
+    // --- NEW: Additional Workout Content ---
+    EmpowermentContent(
+      title: '10-Minute Low-Impact Cardio',
+      description:
+          'Get your heart rate up without stressing your joints. Perfect for a quick energy boost.',
+      type: ContentType.workout,
+      icon: Icons.directions_run,
+      videoPath: 'assets/videos/cardio.mp4', // Assumes you have this asset
+      difficulty: 'Beginner',
+      duration: '10 Mins',
+      benefits: [
+        KeyBenefit(
+          'Improves Heart Health',
+          'Strengthens the cardiovascular system for better overall health.',
+        ),
+        KeyBenefit(
+          'Boosts Metabolism',
+          'Helps your body use energy more efficiently, aiding in weight management.',
+        ),
+        KeyBenefit(
+          'Enhances Mood',
+          'Releases endorphins, which act as natural mood elevators.',
+        ),
+      ],
+    ),
+    EmpowermentContent(
+      title: 'Beginner Bodyweight Strength',
+      description:
+          'Build a strong foundation with simple, effective bodyweight exercises.',
+      type: ContentType.workout,
+      icon: Icons.fitness_center,
+      videoPath: 'assets/videos/strength.mp4', // Assumes you have this asset
+      difficulty: 'Beginner',
+      duration: '15 Mins',
+      benefits: [
+        KeyBenefit(
+          'Increases Muscle Mass',
+          'More muscle helps improve the body\'s sensitivity to insulin.',
+        ),
+        KeyBenefit(
+          'Strengthens Bones',
+          'Weight-bearing exercises are crucial for improving bone density.',
+        ),
+        KeyBenefit(
+          'Improves Glucose Uptake',
+          'Active muscles draw glucose from the blood for energy during and after exercise.',
+        ),
+      ],
+    ),
+
+    // --- Existing Ayurvedic Medicine Content ---
     EmpowermentContent(
       title: 'The Power of Fenrugreek',
       description: 'Understand how this seed helps in blood sugar regulation.',
@@ -136,6 +186,50 @@ class EmpowermentController {
       ],
       howToUse:
           'Drinking a small glass (around 30-50ml) of fresh bitter gourd juice on an empty stomach each morning is the most effective method.',
+    ),
+
+    // --- NEW: Additional Ayurveda Content ---
+    EmpowermentContent(
+      title: 'Amla: The Vitamin C Powerhouse',
+      description:
+          'Learn how Indian Gooseberry (Amla) can support your diabetic journey.',
+      type: ContentType.ayurveda,
+      icon: Icons.energy_savings_leaf,
+      imagePath: 'assets/images/amla.png', // Using placeholder image
+      sourceUrl: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6950204/',
+      benefits: [
+        KeyBenefit(
+          'Rich in Antioxidants',
+          'The high Vitamin C content helps combat oxidative stress, a common complication in diabetes.',
+        ),
+        KeyBenefit(
+          'Supports Pancreatic Function',
+          'Contains chromium, which helps in carbohydrate metabolism and may make the body more responsive to insulin.',
+        ),
+      ],
+      howToUse:
+          'Mix one teaspoon of Amla powder in a glass of warm water and drink it on an empty stomach in the morning. Alternatively, consume 1-2 fresh amlas daily.',
+    ),
+    EmpowermentContent(
+      title: 'Turmeric: The Golden Spice',
+      description:
+          'Discover the anti-inflammatory and blood sugar benefits of curcumin in turmeric.',
+      type: ContentType.ayurveda,
+      icon: Icons.flare,
+      imagePath: 'assets/images/turmeric.png', // Using placeholder image
+      sourceUrl: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5664031/',
+      benefits: [
+        KeyBenefit(
+          'Reduces Inflammation',
+          'Curcumin, its active compound, is a powerful anti-inflammatory that can help reduce insulin resistance.',
+        ),
+        KeyBenefit(
+          'May Delay Diabetes Onset',
+          'Studies suggest it can improve the function of insulin-producing cells in the pancreas.',
+        ),
+      ],
+      howToUse:
+          'Drink a glass of warm milk with half a teaspoon of turmeric powder before bed. You can also add it generously to curries and other dishes.',
     ),
   ];
 
